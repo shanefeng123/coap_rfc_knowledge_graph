@@ -2,7 +2,6 @@ from tokenizers import BertWordPieceTokenizer
 from transformers import BertTokenizer
 import string
 import nltk
-from nltk.corpus import stopwords
 import os
 from pathlib import Path
 
@@ -25,10 +24,9 @@ from pathlib import Path
 #   os.mkdir('./bert-coap')
 #
 # tokenizer.save_model('./bert-coap', 'bert-coap')
-#
+
 # from transformers import BertTokenizer
 # tokenizer = BertTokenizer.from_pretrained('./bert-coap/bert-coap-vocab.txt')
-
 
 
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
@@ -73,8 +71,7 @@ sentence_text = [sentence for sentence in sentence_text if sentence != ""]
 
 # Remove acknowledgement and references
 sentence_text = sentence_text[:1282]
-
+sentence_tokens_ids = tokenizer(sentence_text, padding=True)["input_ids"]
 sentence_tokens = []
-for sentence in sentence_text:
-    sentence_token_ids = tokenizer(sentence)["input_ids"]
-    sentence_tokens.append(tokenizer.convert_ids_to_tokens(sentence_token_ids))
+for ids in sentence_tokens_ids:
+    sentence_tokens.append(tokenizer.convert_ids_to_tokens(ids))
