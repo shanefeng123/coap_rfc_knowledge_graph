@@ -1,1 +1,4 @@
 nltk~=3.6.7
+numpy~=1.21.6
+tokenizers~=0.12.1.dev0
+transformers~=4.20.0.dev0
