@@ -9,6 +9,7 @@ from pathlib import Path
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
 # # Don't worry about this part first. This is to train a customized tokenizer. Might be useful later
 # rfcs = ["rfc7252.txt", "rfc7959.txt", "rfc8613.txt", "rfc8974.txt"]
@@ -103,7 +104,7 @@ def add_trailing_padding(label_list):
     label_list.extend((max_length - len(label_list)) * [3])
 
 
-LABELS = ["B-entity", "I-entity", "O", "PAD"]
+LABELS = ["B-entity", "I-entity", "Other", "PAD"]
 y = []
 # 0
 y.append(
@@ -253,26 +254,244 @@ add_trailing_padding(y[38])
 y.append([2, 2, 2, 0, 1, 1, 2, 2])
 add_trailing_padding(y[39])
 # 40
-# y.append()
+y.append(
+    [2, 0, 1, 1, 2, 0, 1, 1, 1, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 1, 1, 1, 1, 1, 1,
+     2, 2, 0, 1, 1, 1, 1, 1, 1, 2, 2])
+add_trailing_padding(y[40])
+# 41
+y.append([2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2])
+add_trailing_padding(y[41])
+# 42
+y.append([2, 0, 1, 1, 2, 0, 2, 2, 0, 1, 2, 2])
+add_trailing_padding(y[42])
+# 43
+y.append([2, 2, 0, 2, 2, 2, 0, 1, 2, 2, 2])
+add_trailing_padding(y[43])
+# 44
+y.append([2, 2, 2, 0, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 0, 1, 2, 2, 0, 1, 2, 2, 0, 2, 2])
+add_trailing_padding(y[44])
+# 45
+y.append([2, 0, 1, 1, 1, 1, 2, 2, 0, 2, 2, 2, 2, 0, 1, 2, 2])
+add_trailing_padding(y[45])
+# 46
+y.append([2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[46])
+# 47
+y.append([2, 0, 1, 1, 2, 0, 1, 1, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2])
+add_trailing_padding(y[47])
+# 48
+y.append(
+    [2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 0, 2, 0, 2, 2, 0, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 0, 1,
+     1, 1, 1, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[48])
+# 49
+y.append([2, 0, 1, 2, 0, 1, 2, 2, 2, 2, 0, 2, 0, 1, 2, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[49])
+# 50
+y.append([2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2])
+add_trailing_padding(y[50])
+# 51
+y.append(
+    [2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 0,
+     1, 1, 2, 2, 2, 2])
+add_trailing_padding(y[51])
+# 52
+y.append(
+    [2, 0, 1, 1, 1, 1, 2, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 0, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 0,
+     2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[52])
+# 53
+y.append(
+    [2, 0, 1, 2, 2, 0, 1, 1, 2, 2, 0, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0,
+     1, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[53])
+# 54
+y.append([2, 0, 1, 2, 0, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 0, 2, 2])
+add_trailing_padding(y[54])
+# 55
+y.append([2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 0, 2, 2])
+add_trailing_padding(y[55])
+# 56
+y.append([2, 0, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[56])
+# 57
+y.append(
+    [2, 2, 2, 2, 0, 2, 0, 1, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 0, 1, 2, 0, 1, 2, 2, 0,
+     2, 2])
+add_trailing_padding(y[57])
+# 58
+y.append([2, 0, 1, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[58])
+# 59
+y.append([2, 2, 2, 0, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[59])
+# 60
+y.append([2, 0, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 0, 2, 2, 2, 2, 0, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[60])
+# 61
+y.append([2, 2, 2, 0, 1, 2, 2, 0, 1, 2, 2])
+add_trailing_padding(y[61])
+# 62
+y.append([2, 0, 1, 1, 1, 1, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[62])
+# 63
+y.append([2, 0, 1, 2, 0, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[63])
+# 64
+y.append([2, 0, 1, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 0, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[64])
+# 65
+y.append(
+    [2, 0, 1, 1, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, 2, 2, 2, 0,
+     1, 1, 1, 1, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 0, 2, 2])
+add_trailing_padding(y[65])
+# 66
+y.append([2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2])
+add_trailing_padding(y[66])
+# 67
+y.append([2, 2, 2, 2, 0, 1, 2, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[67])
+# 68
+y.append([2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2])
+add_trailing_padding(y[68])
+# 69
+y.append([2, 2, 0, 1, 1, 1, 2, 2, 0, 2, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[69])
+# 70
+y.append([2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[70])
+# 71
+y.append([2, 0, 1, 1, 2, 0, 1, 2, 0, 1, 2, 2, 2, 2, 0, 1, 1, 1, 2, 0, 2, 2])
+add_trailing_padding(y[71])
+# 72
+y.append([2, 2, 2, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 0, 2, 0, 2, 2, 2])
+add_trailing_padding(y[72])
+# 73
+y.append(
+    [2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 0, 2, 0, 2, 0, 2, 2, 2, 0, 1, 2, 2, 2, 0, 2, 2, 2, 2, 0, 1, 2, 2,
+     2, 0, 2, 2])
+add_trailing_padding(y[73])
+# 74
+y.append([2, 2, 0, 2, 2, 2, 0, 2, 2, 0, 1, 2, 2, 0, 2, 2, 2, 0, 1, 2, 2])
+add_trailing_padding(y[74])
+# 75
+y.append([2, 2, 0, 2, 0, 1, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 0, 1, 2, 2])
+add_trailing_padding(y[75])
+# 76
+y.append([2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 0, 2, 2, 0, 1, 2, 2, 0, 1, 1, 1, 2, 2, 2])
+add_trailing_padding(y[76])
+# 77
+y.append([2, 0, 1, 2, 2, 2, 2, 0, 2, 0, 1, 2, 0, 1, 1, 1, 2, 0, 1, 2, 0, 2, 2])
+add_trailing_padding(y[77])
+# 78
+y.append([2, 0, 1, 2, 0, 1, 2, 2, 2, 2, 2, 0, 2, 2, 2, 0, 2, 0, 2, 2])
+add_trailing_padding(y[78])
+# 79
+y.append(
+    [2, 2, 2, 0, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 0, 2, 2, 2, 2, 0, 1, 2, 0, 1, 1, 1, 1, 2, 2, 0, 2, 2,
+     2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[79])
+# 80
+y.append(
+    [2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, 0, 1, 1, 1, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+     0, 2, 2, 2, 0, 1, 1, 1, 2, 0, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[80])
+# 81
+y.append([2, 0, 1, 2, 2, 2, 2, 0, 2, 2, 0, 2, 0, 1, 1, 2, 2, 0, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[81])
+# 82
+y.append([2, 0, 1, 2, 0, 1, 1, 1, 2, 2, 2, 2, 0, 2, 0, 2, 0, 1, 2, 0, 1, 2, 2])
+add_trailing_padding(y[82])
+# 83
+y.append([2, 0, 1, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 0, 2, 2])
+add_trailing_padding(y[83])
+# 84
+y.append([2, 2, 0, 1, 2, 2, 2, 0, 2, 0, 2, 2])
+add_trailing_padding(y[84])
+# 85
+y.append([2, 2, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[85])
+# 86
+y.append([2, 2, 0, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2])
+add_trailing_padding(y[86])
+# 87
+y.append([2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 0, 1, 2, 2, 2])
+add_trailing_padding(y[87])
+# 88
+y.append([2, 0, 2, 2, 2, 2, 2, 0, 2, 0, 1, 2, 0, 2, 2, 2])
+add_trailing_padding(y[88])
+# 89
+y.append(
+    [2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 0, 1, 1, 1, 2, 0, 1, 1, 1, 1, 2, 2, 2, 0, 2, 2, 0, 1, 1, 2, 0,
+     1, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[89])
+# 90
+y.append(
+    [2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 0, 1,
+     2, 2, 1, 2, 2, 2, 2, 0, 1, 2, 0, 1, 2, 2, 2])
+add_trailing_padding(y[90])
+# 91
+y.append([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[91])
+# 92
+y.append([2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 0, 1, 2, 0, 1, 2, 2, 2])
+add_trailing_padding(y[92])
+# 93
+y.append([2, 2, 0, 1, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 0, 1, 1, 1, 1, 2, 2])
+add_trailing_padding(y[93])
+# 94
+y.append([2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 0, 1, 1, 2, 2, 2, 2, 0, 1, 2, 2])
+add_trailing_padding(y[94])
+# 95
+y.append([2, 2, 0, 1, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 0, 2, 0, 1, 1, 1, 2, 2])
+add_trailing_padding(y[95])
+# 96
+y.append([2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 0, 2, 2, 2, 2, 0, 1, 1, 2, 0, 1, 2, 2, 2, 2, 0, 1, 1, 1, 0, 1, 2, 2, 2])
+add_trailing_padding(y[96])
+# 97
+y.append([2, 0, 1, 1, 1, 0, 1, 1, 1, 1, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 0, 1, 2, 0, 1, 2, 2, 2, 2])
+add_trailing_padding(y[97])
+# 98
+y.append([2, 2, 2, 2, 2, 2, 0, 2, 0, 1, 2, 2, 2, 2, 0, 1, 2, 0, 1, 1, 2, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[98])
+# 99
+y.append([2, 2, 0, 2, 2, 2, 2, 0, 2, 0, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[99])
+# 100
+y.append([2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2])
+add_trailing_padding(y[100])
+# 101
+y.append(
+    [2, 2, 0, 2, 2, 2, 2, 0, 1, 2, 0, 2, 2, 0, 1, 1, 1, 2, 0, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 0, 2, 2, 2, 0, 1,
+     1, 2, 2, 2, 2, 2, 0, 1, 2, 0, 1, 2, 0, 2, 2])
+add_trailing_padding(y[101])
+# 102
+y.append([2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[102])
+# 103
+
 
 # Fine Tune BERT
 checkpoint = "bert-base-uncased"
-bert = TFAutoModelForTokenClassification.from_pretrained(checkpoint)
+bert = TFAutoModel.from_pretrained(checkpoint)
 inputs = tf.keras.layers.Input(shape=(max_length,), name="input_ids", dtype="int32")
 mask = tf.keras.layers.Input(shape=(max_length,), name="attention_mask", dtype="int32")
 embeddings = bert(input_ids=inputs, attention_mask=mask)[0]
 X = tf.keras.layers.Dense(128, activation="relu")(embeddings)
-X = tf.keras.layers.Dropout(0.1)(X)
+X = tf.keras.layers.Dropout(0.2)(X)
 outputs = tf.keras.layers.Dense(4, activation="softmax", name="output")(X)
 model = tf.keras.Model(inputs=[inputs, mask], outputs=outputs)
 recall = tf.keras.metrics.Recall()
 precision = tf.keras.metrics.Precision()
-model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy", precision, recall])
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
+model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy", precision, recall])
 model.summary()
 #
 # Just trying out
-x = np.array(input_ids[0:40])
-x_mask = np.array(attention_mask[0:40])
+x = np.array(input_ids[0:100])
+x_mask = np.array(attention_mask[0:100])
+
+x = np.concatenate((x, x_mask), axis=1)
 
 y_distribution = []
 for labels in y:
@@ -283,24 +502,27 @@ print(Counter(y_distribution))
 for i in range(len(y)):
     for j in range(len(y[i])):
         one_hot = [0] * len(LABELS)
-        one_hot[y[i][j] - 1] = 1
+        one_hot[y[i][j]] = 1
         y[i][j] = one_hot
 
-x_train = x[0:30]
-x_val = x[30:]
-x_train_mask = x_mask[0:30]
-x_val_mask = x_mask[30:]
-
 y = np.array(y)
-y_train = y[0:30]
-y_val = y[30:]
 
-model.fit([x_train, x_train_mask], y_train, validation_data=([x_val, x_val_mask], y_val), batch_size=2, epochs=10)
+# Split it into training and validation set
+x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.2, shuffle=True)
 
-# test_sentence = 'The use of web services (web APIs) on the Internet has become ' \
-#                 'ubiquitous in most applications and depends on the fundamental ' \
-#                 'Representational State Transfer [REST] architecture of the Web.'
+x_train_mask = x_train[:, max_length:]
+x_train = x_train[:, 0:max_length]
+x_val_mask = x_val[:, max_length:]
+x_val = x_val[:, 0:max_length]
+#
+model.fit([x_train, x_train_mask], y_train, validation_data=([x_val, x_val_mask], y_val), batch_size=8, epochs=10)
+# # #
+# test_sentence = 'MQTT protocol'
 # tokenized_test_sentence = tokenizer(test_sentence, padding="max_length", max_length=max_length)
 # test_sentence_ids = np.array([tokenized_test_sentence["input_ids"]])
 # test_sentence_mask = np.array([tokenized_test_sentence["attention_mask"]])
-# print(model.predict(x=[test_sentence_ids, test_sentence_mask]))
+# test_sentence_tokens = []
+# for ids in test_sentence_ids:
+#     test_sentence_tokens.append(tokenizer.convert_ids_to_tokens(ids))
+# print(np.argmax(model.predict(x=[test_sentence_ids, test_sentence_mask]), axis=-1))
+# print(test_sentence_tokens)
