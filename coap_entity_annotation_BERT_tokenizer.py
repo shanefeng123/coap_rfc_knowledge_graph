@@ -469,7 +469,300 @@ add_trailing_padding(y[101])
 y.append([2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
 add_trailing_padding(y[102])
 # 103
-
+y.append(
+    [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 0, 2, 2, 0, 1, 1, 2, 2, 0, 1, 1, 1, 1,
+     2, 2, 2, 2, 2])
+add_trailing_padding(y[103])
+# 104
+y.append(
+    [2, 2, 2, 2, 2, 2, 0, 1, 2, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 0, 1, 2, 0, 2, 2])
+add_trailing_padding(y[104])
+# 105
+y.append([2, 2, 2, 0, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2])
+add_trailing_padding(y[105])
+# 106
+y.append([2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[106])
+# 107
+y.append(
+    [2, 2, 2, 0, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 2, 0, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 2, 0, 2, 2, 2, 2, 0, 1, 1,
+     2, 2])
+add_trailing_padding(y[107])
+# 108
+y.append([2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[108])
+# 109
+y.append(
+    [2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 0, 2, 2, 2,
+     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[109])
+# 110
+y.append([2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2])
+add_trailing_padding(y[110])
+# 111
+y.append([2, 2, 0, 2, 2, 2, 2, 2, 2, 0, 2, 0, 2, 2, 2, 2])
+add_trailing_padding(y[111])
+# 112
+y.append(
+    [2, 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 0, 2, 2, 2])
+add_trailing_padding(y[112])
+# 113
+y.append(
+    [2, 0, 1, 1, 2, 2, 0, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 0, 2, 0, 2, 0, 2, 2, 0, 0, 2, 2, 2, 2, 0, 1, 2,
+     2, 2, 2])
+add_trailing_padding(y[113])
+# 114
+y.append([2, 0, 1, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[114])
+# 115
+y.append([2, 0, 1, 1, 2, 0, 1, 2, 0, 2, 2, 0, 1, 2, 0, 2, 2, 2, 2, 2, 0, 2, 2])
+add_trailing_padding(y[115])
+# 116
+y.append([2, 2, 0, 1, 2, 2, 2, 0, 1, 2, 0, 1, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[116])
+# 117
+y.append([2, 2, 0, 2, 2, 2, 2, 2, 0, 1, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[117])
+# 118
+y.append([2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[118])
+# 119
+y.append([2, 0, 1, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 0, 2, 2, 2, 0, 2, 0, 1, 2, 2, 2, 0, 2, 2, 2])
+add_trailing_padding(y[119])
+# 120
+y.append([2, 2, 0, 1, 2, 0, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, 2, 2, 0, 2, 2])
+add_trailing_padding(y[120])
+# 121
+y.append([2, 2, 2, 2, 0, 2, 2, 0, 1, 2, 2, 0, 2, 0, 2, 2, 2, 2, 0, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 0, 2, 2, 0, 2, 2])
+add_trailing_padding(y[121])
+# 122
+y.append([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2])
+add_trailing_padding(y[122])
+# 123
+y.append(
+    [2, 2, 0, 1, 2, 2, 2, 2, 2, 0, 1, 2, 0, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 0,
+     2, 2, 0, 2, 0, 1, 2, 2])
+add_trailing_padding(y[123])
+# 124
+y.append([2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 0, 1, 2, 2, 2, 2, 0, 2, 0, 1, 2, 2])
+add_trailing_padding(y[124])
+# 125
+y.append(
+    [2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 0, 2, 0, 1, 2, 0, 1, 2, 2, 0, 2, 2, 2, 0,
+     1, 2, 2])
+add_trailing_padding(y[125])
+# 126
+y.append([2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2])
+add_trailing_padding(y[126])
+# 127
+y.append([2, 0, 1, 0, 1, 2, 2, 2, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[127])
+# 128
+y.append(
+    [2, 0, 1, 0, 1, 2, 2, 2, 2, 0, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 0, 1, 2,
+     2, 0, 1, 1, 1, 2, 2, 2])
+add_trailing_padding(y[128])
+# 129
+y.append([2, 0, 1, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[129])
+# 130
+y.append([2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 0, 2, 0, 1, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[130])
+# 131
+y.append([2, 2, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2])
+add_trailing_padding(y[131])
+# 132
+y.append([2, 0, 1, 1, 2, 2, 2, 2, 2, 0, 1, 2, 2])
+add_trailing_padding(y[132])
+# 133
+y.append([2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2])
+add_trailing_padding(y[133])
+# 134
+y.append([2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[134])
+# 135
+y.append(
+    [2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 0, 1, 1, 1, 1, 2, 0, 1, 1, 2, 1, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2,
+     2, 2, 2, 0, 1, 2, 2])
+add_trailing_padding(y[135])
+# 136
+y.append([2, 2, 2, 0, 1, 1, 1, 2, 2])
+add_trailing_padding(y[136])
+# 137
+y.append([2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[137])
+# 138
+y.append([2, 2, 0, 2, 2, 2, 2, 0, 2, 2])
+add_trailing_padding(y[138])
+# 139
+y.append([2, 0, 2, 2, 0, 1, 2, 2, 0, 1, 2, 2])
+add_trailing_padding(y[139])
+# 140
+y.append([2, 0, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[140])
+# 141
+y.append([2, 2, 2, 2, 0, 2, 2, 2, 0, 1, 2, 0, 2, 2, 0, 1, 1, 1, 2, 0, 2, 2, 0, 1, 2, 0, 2, 2, 2, 0, 2, 0, 2, 2, 2])
+add_trailing_padding(y[141])
+# 142
+y.append([2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[142])
+# 143
+y.append([2, 0, 1, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[143])
+# 144
+y.append([2, 2, 2, 0, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[144])
+# 145
+y.append([2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[145])
+# 146
+y.append(
+    [2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0,
+     1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+     2, 2])
+add_trailing_padding(y[146])
+# 147
+y.append([2, 2, 0, 2, 2, 2, 0, 2, 0, 2, 2, 2, 0, 1, 2, 0, 2, 2, 2, 0, 1, 1, 2, 0, 2, 2, 2, 2, 0, 1, 1, 2, 0, 2, 2, 2])
+add_trailing_padding(y[147])
+# 148
+y.append([2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2])
+add_trailing_padding(y[148])
+# 149
+y.append([2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, 0, 1, 2, 2])
+add_trailing_padding(y[149])
+# 150
+y.append([2, 2, 2, 2, 2, 0, 2, 2, 0, 1, 2, 2, 0, 1, 2, 2, 2, 2, 2, 0, 2, 2, 0, 1, 2, 2])
+add_trailing_padding(y[150])
+# 151
+y.append([2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[151])
+# 152
+y.append([2, 2, 2, 2, 0, 2, 0, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[152])
+# 153
+y.append([2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[153])
+# 154
+y.append([2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 0, 2, 2, 0, 1, 2, 0, 2, 0, 2, 2, 0, 1, 2, 0, 1, 1, 1, 2, 2])
+add_trailing_padding(y[154])
+# 155
+y.append([2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[155])
+# 156
+y.append([2, 2, 0, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[156])
+# 157
+y.append([2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 0, 2, 0, 2, 2])
+add_trailing_padding(y[157])
+# 158
+y.append([2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[158])
+# 159
+y.append([2, 0, 2, 0, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[159])
+# 160
+y.append([2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2, 2, 0, 1, 2, 2, 0, 2, 2])
+add_trailing_padding(y[160])
+# 161
+y.append([2, 2, 2, 0, 2, 0, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2])
+add_trailing_padding(y[161])
+# 162
+y.append(
+    [2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2,
+     2, 2, 0, 2, 2])
+add_trailing_padding(y[162])
+# 163
+y.append([2, 2, 0, 1, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[163])
+# 164
+y.append([2, 2, 2, 2, 2, 0, 1, 2, 2, 0, 1, 1, 1, 2, 2])
+add_trailing_padding(y[164])
+# 165
+y.append([2, 2, 2, 2, 2, 0, 2, 2, 2, 0, 1, 1, 1, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[165])
+# 166
+y.append(
+    [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+     0, 1, 2, 2])
+add_trailing_padding(y[166])
+# 167
+y.append([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2])
+add_trailing_padding(y[167])
+# 168
+y.append([2, 0, 1, 0, 1, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 0, 2, 2])
+add_trailing_padding(y[168])
+# 169
+y.append([2, 2, 0, 2, 2, 2, 0, 2, 2, 0, 1, 2, 2, 2, 0, 1, 1, 2, 2, 0, 2, 2, 0, 1, 2, 2, 2, 0, 1, 2, 2, 2])
+add_trailing_padding(y[169])
+# 170
+y.append(
+    [2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2,
+     2, 2, 2, 2, 0, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 0, 2, 2])
+add_trailing_padding(y[170])
+# 171
+y.append([2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 0, 1, 2, 2, 2, 2, 2])
+add_trailing_padding(y[171])
+# 172
+y.append([2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2])
+add_trailing_padding(y[172])
+# 173
+y.append([2, 0, 1, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[173])
+# 174
+y.append([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[174])
+# 175
+y.append([2, 2, 0, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2])
+add_trailing_padding(y[175])
+# 176
+y.append([2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2])
+add_trailing_padding(y[176])
+# 177
+y.append([2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2])
+add_trailing_padding(y[177])
+# 178
+y.append([2, 0, 2, 2, 2, 2, 0, 1, 2, 2])
+add_trailing_padding(y[178])
+# 179
+y.append([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[179])
+# 180
+y.append([2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 0, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2])
+add_trailing_padding(y[180])
+# 181
+y.append([2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2])
+add_trailing_padding(y[181])
+# 182
+y.append([2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[182])
+# 183
+y.append([2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 0, 1, 2, 2, 2, 2, 2])
+add_trailing_padding(y[183])
+# 184
+y.append([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 0, 1, 2, 2, 2, 2])
+add_trailing_padding(y[184])
+# 185
+y.append([2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 0, 1, 2, 2, 2, 0, 1, 2, 2, 2, 2])
+add_trailing_padding(y[185])
+# 186
+y.append([2, 0, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[186])
+# 187
+y.append([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[187])
+# 188
+y.append([2, 0, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2])
+add_trailing_padding(y[188])
+# 189
+y.append([2, 2, 0, 2, 0, 2, 2, 0, 1, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[189])
+# 190
+y.append([2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[190])
+# 191
+y.append([2, 0, 1, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[191])
+# 192
 
 # Fine Tune BERT
 checkpoint = "bert-base-uncased"
@@ -486,10 +779,10 @@ precision = tf.keras.metrics.Precision()
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
 model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy", precision, recall])
 model.summary()
-#
+# #
 # Just trying out
-x = np.array(input_ids[0:100])
-x_mask = np.array(attention_mask[0:100])
+x = np.array(input_ids[0:192])
+x_mask = np.array(attention_mask[0:192])
 
 x = np.concatenate((x, x_mask), axis=1)
 
@@ -516,13 +809,13 @@ x_val_mask = x_val[:, max_length:]
 x_val = x_val[:, 0:max_length]
 #
 model.fit([x_train, x_train_mask], y_train, validation_data=([x_val, x_val_mask], y_val), batch_size=8, epochs=10)
-# # #
-# test_sentence = 'MQTT protocol'
-# tokenized_test_sentence = tokenizer(test_sentence, padding="max_length", max_length=max_length)
-# test_sentence_ids = np.array([tokenized_test_sentence["input_ids"]])
-# test_sentence_mask = np.array([tokenized_test_sentence["attention_mask"]])
-# test_sentence_tokens = []
-# for ids in test_sentence_ids:
-#     test_sentence_tokens.append(tokenizer.convert_ids_to_tokens(ids))
-# print(np.argmax(model.predict(x=[test_sentence_ids, test_sentence_mask]), axis=-1))
-# print(test_sentence_tokens)
+# #
+test_sentence = 'web apis'
+tokenized_test_sentence = tokenizer(test_sentence, padding="max_length", max_length=max_length)
+test_sentence_ids = np.array([tokenized_test_sentence["input_ids"]])
+test_sentence_mask = np.array([tokenized_test_sentence["attention_mask"]])
+test_sentence_tokens = []
+for ids in test_sentence_ids:
+    test_sentence_tokens.append(tokenizer.convert_ids_to_tokens(ids))
+print(np.argmax(model.predict(x=[test_sentence_ids, test_sentence_mask]), axis=-1))
+print(test_sentence_tokens)
