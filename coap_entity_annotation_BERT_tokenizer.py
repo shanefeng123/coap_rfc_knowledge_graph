@@ -1,7 +1,8 @@
 # %%
+import random
 from collections import Counter
 from tokenizers import BertWordPieceTokenizer
-from transformers import BertTokenizer, TFAutoModelForTokenClassification, TFAutoModel
+from transformers import BertTokenizer, TFAutoModel
 import string
 import nltk
 import os
@@ -763,6 +764,36 @@ add_trailing_padding(y[190])
 y.append([2, 0, 1, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2])
 add_trailing_padding(y[191])
 # 192
+y.append([2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[192])
+# 193
+y.append([2, 0, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[193])
+# 194
+y.append([2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[194])
+# 195
+y.append(
+    [2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+     2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[195])
+# 196
+y.append(
+    [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+     2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[196])
+# 197
+y.append([2, 2, 0, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[197])
+# 198
+y.append(
+    [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2,
+     2, 2, 2, 2])
+add_trailing_padding(y[198])
+# 199
+y.append([2, 0, 2, 2, 0, 1, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[199])
+
 
 # Fine Tune BERT
 checkpoint = "bert-base-uncased"
@@ -781,8 +812,8 @@ model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["ac
 model.summary()
 # #
 # Just trying out
-x = np.array(input_ids[0:192])
-x_mask = np.array(attention_mask[0:192])
+x = np.array(input_ids[0:200])
+x_mask = np.array(attention_mask[0:200])
 
 x = np.concatenate((x, x_mask), axis=1)
 
@@ -792,13 +823,18 @@ for labels in y:
 print(Counter(y_distribution))
 
 # One hot the labels so that the model can calculate loss and accuracy
+y_one_hot = []
 for i in range(len(y)):
+    y_one_hot.append([])
     for j in range(len(y[i])):
         one_hot = [0] * len(LABELS)
         one_hot[y[i][j]] = 1
-        y[i][j] = one_hot
+        y_one_hot[i].append(one_hot)
 
 y = np.array(y)
+y_one_hot = np.array(y_one_hot)
+
+
 
 # Split it into training and validation set
 x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.2, shuffle=True)
@@ -808,14 +844,16 @@ x_train = x_train[:, 0:max_length]
 x_val_mask = x_val[:, max_length:]
 x_val = x_val[:, 0:max_length]
 #
-model.fit([x_train, x_train_mask], y_train, validation_data=([x_val, x_val_mask], y_val), batch_size=8, epochs=10)
-# #
-test_sentence = 'web apis'
-tokenized_test_sentence = tokenizer(test_sentence, padding="max_length", max_length=max_length)
-test_sentence_ids = np.array([tokenized_test_sentence["input_ids"]])
-test_sentence_mask = np.array([tokenized_test_sentence["attention_mask"]])
-test_sentence_tokens = []
-for ids in test_sentence_ids:
-    test_sentence_tokens.append(tokenizer.convert_ids_to_tokens(ids))
-print(np.argmax(model.predict(x=[test_sentence_ids, test_sentence_mask]), axis=-1))
-print(test_sentence_tokens)
+# model.fit([x_train, x_train_mask], y_train, validation_data=([x_val, x_val_mask], y_val), batch_size=8, epochs=10)
+# # #
+# test_sentence = 'web apis'
+# tokenized_test_sentence = tokenizer(test_sentence, padding="max_length", max_length=max_length)
+# test_sentence_ids = np.array([tokenized_test_sentence["input_ids"]])
+# test_sentence_mask = np.array([tokenized_test_sentence["attention_mask"]])
+# test_sentence_tokens = []
+# for ids in test_sentence_ids:
+#     test_sentence_tokens.append(tokenizer.convert_ids_to_tokens(ids))
+# print(np.argmax(model.predict(x=[test_sentence_ids, test_sentence_mask]), axis=-1))
+# print(test_sentence_tokens)
+np.save("data/sentence_tokens", sentence_tokens[:200])
+np.save("data/entity_labels", y)
