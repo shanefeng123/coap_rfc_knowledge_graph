@@ -41,7 +41,7 @@ tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 nltk.download("punkt")
 nltk.download('wordnet')
 nltk.download('omw-1.4')
-rfc7252 = open("rfc7252.txt").read()
+rfc7252 = open("./data/rfc7252.txt").read()
 
 # Use nltk to tokenize sentences
 sentence_text = nltk.sent_tokenize(rfc7252, "english")
@@ -73,6 +73,11 @@ for i in range(len(sentence_text)):
 
     # Change to all lower case
     sentence_text[i] = sentence_text[i].lower()
+
+for i in range(len(sentence_text)):
+    if sentence_text[i].endswith("shelby, et al."):
+        sentence_text[i] = sentence_text[i][0:sentence_text[i].find("shelby, et al.")] + sentence_text[i + 1]
+        sentence_text[i + 1] = ""
 
 sentence_text = [sentence for sentence in sentence_text if sentence != ""]
 
@@ -793,7 +798,147 @@ add_trailing_padding(y[198])
 # 199
 y.append([2, 0, 2, 2, 0, 1, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2])
 add_trailing_padding(y[199])
-
+# 200
+y.append(
+    [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2,
+     0, 1, 1, 2, 0, 1, 1, 1, 2, 2])
+add_trailing_padding(y[200])
+# 201
+y.append(
+    [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1,
+     1, 2, 2, 2])
+add_trailing_padding(y[201])
+# 202
+y.append([2, 2, 2, 2, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2])
+add_trailing_padding(y[202])
+# 203
+y.append([2, 0, 1, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2])
+add_trailing_padding(y[203])
+# 204
+y.append([2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[204])
+# 205
+y.append([2, 2, 0, 1, 2, 2, 2, 2, 0, 2, 2, 0, 1, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[205])
+# 206
+y.append([2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 0, 2, 0, 1, 2, 2])
+add_trailing_padding(y[206])
+# 207
+y.append([2, 2, 2, 2, 2, 0, 2, 2, 2, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 1, 1, 1, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[207])
+# 208
+y.append([2, 2, 0, 1, 2, 2, 0, 1, 2, 0, 1, 1, 1, 1, 2, 2])
+add_trailing_padding(y[208])
+# 209
+y.append([2, 0, 2, 0, 1, 2, 0, 1, 1, 1, 2, 2, 0, 2, 0, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[209])
+# 210
+y.append([2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 0, 2, 2, 2, 0, 1, 2, 2])
+add_trailing_padding(y[210])
+# 211
+y.append(
+    [2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2,
+     0, 1, 2, 2, 0, 1, 1, 1, 2, 2])
+add_trailing_padding(y[211])
+# 212
+y.append([2, 2, 2, 0, 1, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2])
+add_trailing_padding(y[212])
+# 213
+y.append([2, 2, 2, 2, 0, 2, 0, 2, 2])
+add_trailing_padding(y[213])
+# 214
+y.append([2, 2, 0, 2, 2, 0, 2, 2, 2, 2, 0, 1, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[214])
+# 215
+y.append([2, 2, 2, 2, 0, 1, 2, 2, 0, 2, 2, 2, 0, 2, 2, 0, 2, 2, 2, 0, 2, 2])
+add_trailing_padding(y[215])
+# 216
+y.append([2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2])
+add_trailing_padding(y[216])
+# 217
+y.append([2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[217])
+# 218
+y.append([2, 2, 0, 1, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[218])
+# 219
+y.append([2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[219])
+# 220
+y.append([2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[220])
+# 221
+y.append([2, 0, 2, 2, 2, 2, 2, 0, 1, 2, 2, 0, 2, 2, 2, 2, 2, 0, 2, 0, 1, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[221])
+# 222
+y.append([2, 2, 0, 1, 1, 2, 2, 2, 2, 0, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 0, 2, 2])
+add_trailing_padding(y[222])
+# 223
+y.append(
+    [2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 0, 2, 2, 0, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2,
+     2, 2, 0, 2, 0, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2])
+add_trailing_padding(y[223])
+# 224
+y.append([2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[224])
+# 225
+y.append(
+    [2, 2, 0, 1, 1, 2, 2, 2, 0, 1, 2, 2, 0, 1, 1, 2, 2, 2, 2, 0, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+     2, 2])
+add_trailing_padding(y[225])
+# 226
+y.append([2, 2, 0, 1, 2, 2, 2, 0, 1, 2, 2, 0, 1, 1, 2, 2, 2, 0, 2, 2])
+add_trailing_padding(y[226])
+# 227
+y.append(
+    [2, 2, 2, 0, 1, 2, 0, 1, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 0, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 0, 2, 2, 2, 2,
+     2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[227])
+# 228
+y.append([2, 2, 2, 2, 0, 2, 0, 1, 2, 0, 1, 2, 2, 2, 2, 2, 0, 1, 2, 0, 1, 2, 2])
+add_trailing_padding(y[228])
+# 229
+y.append(
+    [2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[229])
+# 230
+y.append(
+    [2, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 0, 2, 2,
+     2, 0, 1, 2, 2, 0, 1, 1, 1, 1, 2, 2])
+add_trailing_padding(y[230])
+# 231
+y.append(
+    [2, 2, 2, 2, 0, 1, 1, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 0, 1, 1,
+     1, 1, 2, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[231])
+# 232
+y.append([2, 2, 2, 0, 1, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[232])
+# 233
+y.append(
+    [2, 2, 2, 0, 1, 1, 1, 1, 2, 0, 1, 1, 1, 1, 1, 2, 2, 0, 1, 2, 2, 2, 2, 0, 1, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 0, 2,
+     2, 2, 2, 0, 1, 2, 2, 0, 2, 2])
+add_trailing_padding(y[233])
+# 234
+y.append([2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 0, 1, 2, 2, 2, 0, 2, 2, 2, 2, 2])
+add_trailing_padding(y[234])
+# 235
+y.append([2, 2, 0, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 1, 2, 2])
+add_trailing_padding(y[235])
+# 236
+y.append([2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[236])
+# 237
+y.append(
+    [2, 2, 2, 2, 0, 1, 1, 2, 2, 0, 1, 1, 1, 2, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 2, 0, 1,
+     1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[237])
+# 238
+y.append(
+    [2, 2, 0, 1, 1, 1, 2, 2, 2, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 2, 2, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2])
+add_trailing_padding(y[238])
+# 239
+y.append([])
 
 # Fine Tune BERT
 checkpoint = "bert-base-uncased"
@@ -812,8 +957,8 @@ model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["ac
 model.summary()
 # #
 # Just trying out
-x = np.array(input_ids[0:200])
-x_mask = np.array(attention_mask[0:200])
+x = np.array(input_ids[0:len(y)])
+x_mask = np.array(attention_mask[0:len(y)])
 
 x = np.concatenate((x, x_mask), axis=1)
 
@@ -834,17 +979,15 @@ for i in range(len(y)):
 y = np.array(y)
 y_one_hot = np.array(y_one_hot)
 
-
-
 # Split it into training and validation set
-x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.2, shuffle=True)
+x_train, x_val, y_train, y_val = train_test_split(x, y_one_hot, test_size=0.2, shuffle=True)
 
 x_train_mask = x_train[:, max_length:]
 x_train = x_train[:, 0:max_length]
 x_val_mask = x_val[:, max_length:]
 x_val = x_val[:, 0:max_length]
 #
-# model.fit([x_train, x_train_mask], y_train, validation_data=([x_val, x_val_mask], y_val), batch_size=8, epochs=10)
+model.fit([x_train, x_train_mask], y_train, validation_data=([x_val, x_val_mask], y_val), batch_size=8, epochs=10)
 # # #
 # test_sentence = 'web apis'
 # tokenized_test_sentence = tokenizer(test_sentence, padding="max_length", max_length=max_length)
@@ -855,5 +998,5 @@ x_val = x_val[:, 0:max_length]
 #     test_sentence_tokens.append(tokenizer.convert_ids_to_tokens(ids))
 # print(np.argmax(model.predict(x=[test_sentence_ids, test_sentence_mask]), axis=-1))
 # print(test_sentence_tokens)
-np.save("data/sentence_tokens", sentence_tokens[:200])
+np.save("data/sentence_tokens", sentence_tokens[:len(y)])
 np.save("data/entity_labels", y)

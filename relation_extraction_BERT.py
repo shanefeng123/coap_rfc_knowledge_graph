@@ -83,6 +83,7 @@ def extract_entities_pair(processed_sentence):
     entity_2 = processed_sentence[e2_start + 1: e2_end]
     return [entity_1, entity_2]
 
+
 # Use the above functions to process the sentence data
 processed_sentences = []
 for i in range(len(sentence_tokens)):
@@ -98,7 +99,8 @@ for sentence in squeeze_processed_sentences:
 
 # Class of relations there might be. This list will grow if new relations are encountered
 RELATIONS = ["NO RELATION", "EQUIVALENT", "APPLICATION", "COMPONENT", "TYPE", "ARCHITECTURE", "OP-TYPE", "OP-FEATURE",
-             "OPERATION", "OP-RESULT", "ORIGIN", "PROTOCOL", "REQUIREMENT", "FEATURE", "OP-HOST", "MIDDLEWARE"]
+             "OPERATION", "OP-RESULT", "ORIGIN", "PROTOCOL", "REQUIREMENT", "FEATURE", "OP-HOST", "MIDDLEWARE",
+             "OP-MIDDLEWARE", "HOST"]
 #
 # Annotating the relation
 relation_labels = []
@@ -597,6 +599,64 @@ relation_labels.append(0)
 relation_labels.append(0)
 relation_labels.append(0)
 relation_labels.append(0)
+# 450
+relation_labels.append(0)
+relation_labels.append(15)
+relation_labels.append(15)
+relation_labels.append(16)
+relation_labels.append(16)
+relation_labels.append(8)
+relation_labels.append(0)
+relation_labels.append(0)
+relation_labels.append(1)
+relation_labels.append(15)
+# 460
+relation_labels.append(15)
+relation_labels.append(15)
+relation_labels.append(15)
+relation_labels.append(15)
+relation_labels.append(15)
+relation_labels.append(0)
+relation_labels.append(0)
+relation_labels.append(17)
+relation_labels.append(4)
+relation_labels.append(15)
+# 470
+relation_labels.append(15)
+relation_labels.append(2)
+relation_labels.append(15)
+relation_labels.append(15)
+relation_labels.append(15)
+relation_labels.append(15)
+relation_labels.append(0)
+relation_labels.append(15)
+relation_labels.append(15)
+relation_labels.append(1)
+# 480
+relation_labels.append(2)
+relation_labels.append(0)
+relation_labels.append(0)
+relation_labels.append(2)
+relation_labels.append(0)
+relation_labels.append(0)
+relation_labels.append(0)
+relation_labels.append(0)
+relation_labels.append(0)
+relation_labels.append(1)
+# 490
+relation_labels.append(1)
+relation_labels.append(4)
+relation_labels.append(0)
+relation_labels.append(6)
+relation_labels.append(6)
+relation_labels.append(1)
+relation_labels.append(4)
+relation_labels.append(0)
+relation_labels.append(6)
+relation_labels.append(6)
+# 500
+
+
 
 
 # Only sample some 0 class to balance out the dataset
@@ -616,7 +676,6 @@ no_relation_indexes = random.choices(no_relation_indexes, k=num_no_relation)
 for index in no_relation_indexes:
     x.append(squeeze_processed_sentences[index])
 y.extend([0] * num_no_relation)
-
 
 max_length = len(x[0])
 checkpoint = "bert-base-uncased"
@@ -675,5 +734,4 @@ y_one_hot = np.array(y_one_hot)
 
 model.fit([x, attention_masks], y_one_hot, batch_size=32, epochs=10)
 print(np.argmax(model.predict(x=[x, attention_masks]), axis=-1))
-
 print(Counter(relation_labels))
