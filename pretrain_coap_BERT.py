@@ -53,9 +53,61 @@ class MeditationDataset(torch.utils.data.Dataset):
         return len(self.encodings["input_ids"])
 
 
-dataset = MeditationDataset(inputs)
-loader = torch.utils.data.DataLoader(dataset, batch_size=16, shuffle=True)
+def train(batch, model, optimizer):
+    optimizer.zero_grad()
+    input_ids = batch["input_ids"].to(device)
+    token_type_ids = batch["token_type_ids"].to(device)
+    attention_mask = batch["attention_mask"].to(device)
+    next_sentence_labels = batch["next_sentence_labels"].to(device)
+    token_labels = batch["token_labels"].to(device)
+    train_outputs = model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask,
+                          next_sentence_label=next_sentence_labels, labels=token_labels)
+    train_loss = train_outputs.loss
+    train_loss.backward()
+    # accelerator.backward(loss)
+    optimizer.step()
+    mlm_predictions = torch.argmax(train_outputs.prediction_logits, dim=-1)
+    nsp_predictions = torch.argmax(train_outputs.seq_relationship_logits, dim=-1)
+    # Calculate mlm accuracy
+    mlm_accuracy = torch.sum(torch.eq(mlm_predictions, token_labels)) / (
+            token_labels.shape[0] * token_labels.shape[1])
+    # Calculate nsp accuracy
+    nsp_accuracy = torch.sum(torch.eq(nsp_predictions, next_sentence_labels)) / (
+        next_sentence_labels.shape[0])
+    return train_loss, mlm_predictions, nsp_predictions, mlm_accuracy, nsp_accuracy, token_labels, next_sentence_labels
 
+
+def test(batch, model):
+    model.eval()
+    input_ids = batch["input_ids"].to(device)
+    token_type_ids = batch["token_type_ids"].to(device)
+    attention_mask = batch["attention_mask"].to(device)
+    next_sentence_labels = batch["next_sentence_labels"].to(device)
+    token_labels = batch["token_labels"].to(device)
+    test_outputs = model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask,
+                         next_sentence_label=next_sentence_labels, labels=token_labels)
+    test_loss = test_outputs.loss
+    mlm_predictions = torch.argmax(test_outputs.prediction_logits, dim=-1)
+    nsp_predictions = torch.argmax(test_outputs.seq_relationship_logits, dim=-1)
+    # Calculate mlm accuracy
+    mlm_accuracy = torch.sum(torch.eq(mlm_predictions, token_labels)) / (
+            token_labels.shape[0] * token_labels.shape[1])
+    # Calculate nsp accuracy
+    nsp_accuracy = torch.sum(torch.eq(nsp_predictions, next_sentence_labels)) / (
+        next_sentence_labels.shape[0])
+    return test_loss, mlm_predictions, nsp_predictions, mlm_accuracy, nsp_accuracy, token_labels, next_sentence_labels
+
+
+#
+# prepare dataset and split it into train and test set
+dataset = MeditationDataset(inputs)
+dataset_length = len(dataset)
+train_length = int(dataset_length * 0.8)
+test_length = dataset_length - train_length
+train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_length, test_length])
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=16, shuffle=True)
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=16, shuffle=True)
+#
 device = torch.device("cuda")
 # accelerator = Accelerator()
 # device = accelerator.device
@@ -66,64 +118,88 @@ optimizer = AdamW(model.parameters(), lr=2e-5)
 # model, optimizer, loader = accelerator.prepare(model, optimizer, loader)
 
 for epoch in range(500):
-    loop = tqdm(loader, leave=True)
-    overall_loss = 0
-    epoch_mlm_predictions = None
-    epoch_nsp_predictions = None
-    epoch_mlm_labels = None
-    epoch_nsp_labels = None
-    num_of_batches = 0
-    for batch in loop:
-        num_of_batches += 1
-        optimizer.zero_grad()
-        input_ids = batch["input_ids"].to(device)
-        token_type_ids = batch["token_type_ids"].to(device)
-        attention_mask = batch["attention_mask"].to(device)
-        next_sentence_labels = batch["next_sentence_labels"].to(device)
-        token_labels = batch["token_labels"].to(device)
-        outputs = model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask,
-                        next_sentence_label=next_sentence_labels, labels=token_labels)
-        loss = outputs.loss
-        loss.backward()
-        # accelerator.backward(loss)
-        optimizer.step()
-        loop.set_description(f"Epoch {epoch}")
-        # Calculate mlm accuracy
-        mlm_predictions = torch.argmax(outputs.prediction_logits, dim=-1)
-        mlm_accuracy = torch.sum(torch.eq(mlm_predictions, token_labels)) / (
-                token_labels.shape[0] * token_labels.shape[1])
-        # Calculate nsp accuracy
-        nsp_predictions = torch.argmax(outputs.seq_relationship_logits, dim=-1)
-        nsp_accuracy = torch.sum(torch.eq(nsp_predictions, next_sentence_labels)) / (
-            next_sentence_labels.shape[0])
-        loop.set_postfix(loss=loss.item(), mlm_accuracy=mlm_accuracy.item(), nsp_accuracy=nsp_accuracy.item())
-        # Store the epoch info for overall loss and accuracy calculation
-        overall_loss += loss.item()
-        if epoch_mlm_predictions is None:
-            epoch_mlm_predictions = mlm_predictions
-            epoch_nsp_predictions = nsp_predictions
-            epoch_mlm_labels = token_labels
-            epoch_nsp_labels = next_sentence_labels
-        else:
-            epoch_mlm_predictions = torch.cat((epoch_mlm_predictions, mlm_predictions), dim=0)
-            epoch_nsp_predictions = torch.cat((epoch_nsp_predictions, nsp_predictions), dim=0)
-            epoch_mlm_labels = torch.cat((epoch_mlm_labels, token_labels), dim=0)
-            epoch_nsp_labels = torch.cat((epoch_nsp_labels, next_sentence_labels), dim=0)
+    train_loop = tqdm(train_loader, leave=True)
+    overall_train_loss = 0
+    epoch_train_mlm_predictions = None
+    epoch_train_nsp_predictions = None
+    epoch_train_mlm_labels = None
+    epoch_train_nsp_labels = None
+    num_of_train_batches = len(train_loader)
+    for train_batch in train_loop:
+        train_loss, train_mlm_predictions, train_nsp_predictions, train_mlm_accuracy, train_nsp_accuracy, train_mlm_labels, train_nsp_labels = train(
+            train_batch,
+            model,
+            optimizer)
 
-    average_loss = overall_loss / num_of_batches
-    epoch_mlm_accuracy = torch.sum(torch.eq(epoch_mlm_predictions, epoch_mlm_labels)) / (
-            epoch_mlm_labels.shape[0] * epoch_mlm_labels.shape[1])
-    epoch_nsp_accuracy = torch.sum(torch.eq(epoch_nsp_predictions, epoch_nsp_labels)) / (
-        epoch_nsp_labels.shape[0])
-    print(f"average loss: {average_loss}")
-    print(f"epoch mlm accuracy: {epoch_mlm_accuracy.item()}")
-    print(f"epoch nsp accuracy: {epoch_nsp_accuracy.item()}")
+        train_loop.set_postfix(train_loss=train_loss.item(), train_mlm_accuracy=train_mlm_accuracy.item(),
+                               train_nsp_accuracy=train_nsp_accuracy.item())
+        overall_train_loss += train_loss.item()
+        train_loop.set_description(f"Epoch {epoch} train")
+
+        if epoch_train_mlm_predictions is None:
+            epoch_train_mlm_predictions = train_mlm_predictions
+            epoch_train_nsp_predictions = train_nsp_predictions
+            epoch_train_mlm_labels = train_mlm_labels
+            epoch_train_nsp_labels = train_nsp_labels
+        else:
+            epoch_train_mlm_predictions = torch.cat((epoch_train_mlm_predictions, train_mlm_predictions), dim=0)
+            epoch_train_nsp_predictions = torch.cat((epoch_train_nsp_predictions, train_nsp_predictions), dim=0)
+            epoch_train_mlm_labels = torch.cat((epoch_train_mlm_labels, train_mlm_labels), dim=0)
+            epoch_train_nsp_labels = torch.cat((epoch_train_nsp_labels, train_nsp_labels), dim=0)
+
+    # Evaluate on test data
+    test_loop = tqdm(test_loader, leave=True)
+    overall_test_loss = 0
+    epoch_test_mlm_predictions = None
+    epoch_test_nsp_predictions = None
+    epoch_test_mlm_labels = None
+    epoch_test_nsp_labels = None
+    num_of_test_batches = len(test_loader)
+    for test_batch in test_loop:
+        model.eval()
+        test_loss, test_mlm_predictions, test_nsp_predictions, test_mlm_accuracy, test_nsp_accuracy, test_mlm_labels, test_nsp_labels = test(
+            test_batch, model)
+        test_loop.set_postfix(test_loss=test_loss.item(), test_mlm_accuracy=test_mlm_accuracy.item(),
+                              test_nsp_accuracy=test_nsp_accuracy.item())
+        overall_test_loss += test_loss.item()
+        test_loop.set_description(f"Epoch {epoch} test")
+        if epoch_test_mlm_predictions is None:
+            epoch_test_mlm_predictions = test_mlm_predictions
+            epoch_test_nsp_predictions = test_nsp_predictions
+            epoch_test_mlm_labels = test_mlm_labels
+            epoch_test_nsp_labels = test_nsp_labels
+        else:
+            epoch_test_mlm_predictions = torch.cat((epoch_test_mlm_predictions, test_mlm_predictions), dim=0)
+            epoch_test_nsp_predictions = torch.cat((epoch_test_nsp_predictions, test_nsp_predictions), dim=0)
+            epoch_test_mlm_labels = torch.cat((epoch_test_mlm_labels, test_mlm_labels), dim=0)
+            epoch_test_nsp_labels = torch.cat((epoch_test_nsp_labels, test_nsp_labels), dim=0)
+
+    average_train_loss = overall_train_loss / num_of_train_batches
+    epoch_train_mlm_accuracy = torch.sum(torch.eq(epoch_train_mlm_predictions, epoch_train_mlm_labels)) / (
+            epoch_train_mlm_labels.shape[0] * epoch_train_mlm_labels.shape[1])
+    epoch_train_nsp_accuracy = torch.sum(torch.eq(epoch_train_nsp_predictions, epoch_train_nsp_labels)) / (
+        epoch_train_nsp_labels.shape[0])
+
+    average_test_loss = overall_test_loss / num_of_test_batches
+    epoch_test_mlm_accuracy = torch.sum(torch.eq(epoch_test_mlm_predictions, epoch_test_mlm_labels)) / (
+            epoch_test_mlm_labels.shape[0] * epoch_test_mlm_labels.shape[1])
+    epoch_test_nsp_accuracy = torch.sum(torch.eq(epoch_test_nsp_predictions, epoch_test_nsp_labels)) / (
+        epoch_test_nsp_labels.shape[0])
+    print(f"average train loss: {average_train_loss}")
+    print(f"epoch train mlm accuracy: {epoch_train_mlm_accuracy.item()}")
+    print(f"epoch train nsp accuracy: {epoch_train_nsp_accuracy.item()}")
+    print(f"average test loss: {average_test_loss}")
+    print(f"epoch test mlm accuracy: {epoch_test_mlm_accuracy.item()}")
+    print(f"epoch test nsp accuracy: {epoch_test_nsp_accuracy.item()}")
 
     with open(r"pretrain_results.txt", "a") as file:
         file.write(
-            f"Epoch {epoch} average_loss: {average_loss} mlm_accuracy: {epoch_mlm_accuracy.item()} nsp_accuracy: {epoch_nsp_accuracy.item()}")
+            f"Epoch {epoch} average_train_loss: {average_train_loss} mlm_train_accuracy: {epoch_train_mlm_accuracy.item()} nsp_train_accuracy: {epoch_train_nsp_accuracy.item()}")
         file.write("\n")
-    if epoch_mlm_accuracy.item() > 0.99 and epoch_nsp_accuracy.item() > 0.99:
+        file.write(
+            f"Epoch {epoch} average_test_loss: {average_test_loss} mlm_test_accuracy: {epoch_test_mlm_accuracy.item()} nsp_test_accuracy: {epoch_test_nsp_accuracy.item()}")
+        file.write("\n")
+    if epoch_test_mlm_accuracy.item() > 0.98 and epoch_test_nsp_accuracy.item() > 0.98:
         break
 
 torch.save(model, "coap_BERT.pt")
