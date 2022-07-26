@@ -1,7 +1,7 @@
 import numpy as np
-from itertools import combinations, permutations
-from transformers import TFAutoModel, BertTokenizer
-import tensorflow as tf
+from itertools import combinations
+from transformers import BertForPreTraining, BertTokenizer
+import torch
 from collections import Counter
 import random
 
@@ -658,61 +658,84 @@ relation_labels.append(6)
 # 500
 
 
+# Try out the similarity matching approach
+print(Counter(relation_labels).most_common())
+min_num_samples = 8
+common_relations = []
+for key, value in Counter(relation_labels).items():
+    if value >= min_num_samples:
+        common_relations.append(key)
+common_relations.sort()
+num_of_common_relations = len(common_relations)
 
+no_relation_sequences = []
+X = []
+y = []
+for i in range(len(relation_labels)):
+    if relation_labels[i] in common_relations:
+        if relation_labels[i] == 0:
+            no_relation_sequences.append(squeeze_processed_sentences[i])
+        else:
+            X.append(squeeze_processed_sentences[i])
+            y.append(common_relations.index(relation_labels[i]))
+
+no_relation_sequences = random.choices(no_relation_sequences, k=30)
+X.extend(no_relation_sequences)
+y.extend([0] * 30)
 
 # Only sample some 0 class to balance out the dataset
-num_no_relation = 30
-no_relation_indexes = []
-y = []
-x = []
-for i in range(len(relation_labels)):
-    if relation_labels[i] == 0:
-        no_relation_indexes.append(i)
-    else:
-        y.append(relation_labels[i])
-        x.append(squeeze_processed_sentences[i])
-
-no_relation_indexes = random.choices(no_relation_indexes, k=num_no_relation)
-
-for index in no_relation_indexes:
-    x.append(squeeze_processed_sentences[index])
-y.extend([0] * num_no_relation)
-
-max_length = len(x[0])
+# num_no_relation = 30
+# no_relation_indexes = []
+# y = []
+# x = []
+# for i in range(len(relation_labels)):
+#     if relation_labels[i] == 0:
+#         no_relation_indexes.append(i)
+#     else:
+#         y.append(relation_labels[i])
+#         x.append(squeeze_processed_sentences[i])
+#
+# no_relation_indexes = random.choices(no_relation_indexes, k=num_no_relation)
+#
+# for index in no_relation_indexes:
+#     x.append(squeeze_processed_sentences[index])
+# y.extend([0] * num_no_relation)
+#
+max_length = len(X[0])
 checkpoint = "bert-base-uncased"
 tokenizer = BertTokenizer.from_pretrained(checkpoint)
 tokenizer.add_tokens(["[E1]", "[/E1]", "[E2]", "[/E2]"], special_tokens=True)
-bert = TFAutoModel.from_pretrained(checkpoint)
-print(bert.bert.embeddings.vocab_size)
+bert = torch.load("coap_BERT.pt", map_location=torch.device('cpu')).bert
+# print(bert.embeddings.vocab_size)
 bert.resize_token_embeddings(len(tokenizer))
-print(bert.bert.embeddings.vocab_size)
+print(bert.embeddings.word_embeddings)
 attention_masks = []
-for sentence in x:
+for sentence in X:
     pad_index = sentence.index("[PAD]")
     mask = [1] * pad_index
     mask.extend([0] * (max_length - pad_index))
     attention_masks.append(mask)
-#
-inputs = tf.keras.layers.Input(shape=(max_length,), name="input_ids", dtype="int32")
-mask = tf.keras.layers.Input(shape=(max_length,), name="attention_mask", dtype="int32")
-embeddings = bert(input_ids=inputs, attention_mask=mask)[0]
-CLS_embeddings = embeddings[:, 0]
-X = tf.keras.layers.Dense(128, activation="relu")(CLS_embeddings)
-X = tf.keras.layers.Dropout(0.2)(X)
-X = tf.keras.layers.Dense(64, activation="relu")(X)
-X = tf.keras.layers.Dropout(0.2)(X)
-X = tf.keras.layers.Dense(32, activation="relu")(X)
-X = tf.keras.layers.Dropout(0.2)(X)
-outputs = tf.keras.layers.Dense(len(RELATIONS), activation="softmax", name="output")(X)
-model = tf.keras.Model(inputs=[inputs, mask], outputs=outputs)
-recall = tf.keras.metrics.Recall()
-precision = tf.keras.metrics.Precision()
-optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
-model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy", precision, recall])
-model.summary()
-#
+# #
+# inputs = tf.keras.layers.Input(shape=(max_length,), name="input_ids", dtype="int32")
+# mask = tf.keras.layers.Input(shape=(max_length,), name="attention_mask", dtype="int32")
+# embeddings = bert(input_ids=inputs, attention_mask=mask)[0]
+# CLS_embeddings = embeddings[:, 0]
+# X = tf.keras.layers.Dense(128, activation="relu")(CLS_embeddings)
+# X = tf.keras.layers.Dropout(0.2)(X)
+# X = tf.keras.layers.Dense(64, activation="relu")(X)
+# X = tf.keras.layers.Dropout(0.2)(X)
+# X = tf.keras.layers.Dense(32, activation="relu")(X)
+# X = tf.keras.layers.Dropout(0.2)(X)
+# outputs = tf.keras.layers.Dense(len(RELATIONS), activation="softmax", name="output")(X)
+# model = tf.keras.Model(inputs=[inputs, mask], outputs=outputs)
+# recall = tf.keras.metrics.Recall()
+# precision = tf.keras.metrics.Precision()
+# optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
+# model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy", precision, recall])
+# model.summary()
+# #
 input_ids = []
-for sentence in x:
+for sentence in X:
     ids = []
     for word in sentence:
         if word in ["[E1]", "[/E1]", "[E2]", "[/E2]"]:
@@ -720,19 +743,75 @@ for sentence in x:
         else:
             ids.append(tokenizer.vocab[word])
     input_ids.append(ids)
+#
+inputs = {}
+X = torch.tensor(input_ids)
+attention_masks = torch.tensor(attention_masks)
+y = torch.tensor(y)
 
-x = np.array(input_ids)
-attention_masks = np.array(attention_masks)
-# x = np.concatenate((x, x_mask), axis=1)
+inputs["input_ids"] = X
+inputs["label"] = y
+inputs["attention_mask"] = attention_masks
+inputs["vector_representation"] = bert(input_ids=X, attention_mask=attention_masks).pooler_output
 
-y = np.array(y)
-y_one_hot = []
-for i in range(len(y)):
-    one_hot = [0] * len(RELATIONS)
-    one_hot[y[i]] = 1
-    y_one_hot.append(one_hot)
-y_one_hot = np.array(y_one_hot)
 
-model.fit([x, attention_masks], y_one_hot, batch_size=32, epochs=10)
-print(np.argmax(model.predict(x=[x, attention_masks]), axis=-1))
-print(Counter(relation_labels))
+class MeditationDataset(torch.utils.data.Dataset):
+    def __init__(self, encodings):
+        self.encodings = encodings
+
+    def __getitem__(self, idx):
+        return {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
+
+    def __len__(self):
+        return len(self.encodings["input_ids"])
+
+
+dataset = MeditationDataset(inputs)
+train_length = int(len(dataset) * 0.8)
+test_length = len(dataset) - train_length
+train_set, test_set = torch.utils.data.random_split(dataset, [train_length, test_length])
+
+relation_vector_representations = []
+for i in range(len(common_relations)):
+    relation_vector_representations.append([])
+
+for i in range(len(train_set)):
+    sample = train_set[i]
+    vector_representation = sample["vector_representation"]
+    label = sample["label"]
+    relation_vector_representations[label.item()].append(vector_representation)
+
+centroids = []
+for i in range(len(relation_vector_representations)):
+    centroids.append(torch.mean(torch.stack(relation_vector_representations[i]), dim=0))
+
+centroids = torch.stack(centroids)
+cosine_sim = torch.nn.CosineSimilarity(dim=1)
+train_predictions = []
+train_labels = train_set[:]["label"]
+for i in range(len(train_set)):
+    vector_representation = train_set[i]["vector_representation"]
+    similarities = cosine_sim(centroids, vector_representation)
+    prediction = torch.argmax(similarities)
+    train_predictions.append(prediction.item())
+
+train_predictions = torch.tensor(train_predictions)
+train_accuracy = torch.sum(torch.eq(train_labels, train_predictions)) / train_predictions.shape[0]
+print(train_accuracy.item())
+
+# test_predictions = []
+
+
+# # x = np.concatenate((x, x_mask), axis=1)
+#
+# y = np.array(y)
+# y_one_hot = []
+# for i in range(len(y)):
+#     one_hot = [0] * len(RELATIONS)
+#     one_hot[y[i]] = 1
+#     y_one_hot.append(one_hot)
+# y_one_hot = np.array(y_one_hot)
+#
+# model.fit([x, attention_masks], y_one_hot, batch_size=32, epochs=10)
+# print(np.argmax(model.predict(x=[x, attention_masks]), axis=-1))
+# print(Counter(relation_labels))
