@@ -714,16 +714,16 @@ for sentence in X:
     input_ids.append(ids)
 
 #
-# inputs = {}
-# X = torch.tensor(input_ids)
-# attention_masks = torch.tensor(attention_masks)
-# y = torch.tensor(y)
+inputs = {}
+X = torch.tensor(input_ids)
+attention_masks = torch.tensor(attention_masks)
+y = torch.tensor(y)
 #
-# inputs["input_ids"] = X
-# inputs["label"] = y
-# inputs["attention_mask"] = attention_masks
-# outputs = bert(input_ids=X, attention_mask=attention_masks)
-# inputs["vector_representation"] = outputs.pooler_output
+inputs["input_ids"] = X
+inputs["label"] = y
+inputs["attention_mask"] = attention_masks
+outputs = bert(input_ids=X, attention_mask=attention_masks)
+inputs["vector_representation"] = outputs.pooler_output
 # inputs["all_tokens_embeddings"] = outputs.last_hidden_state
 
 

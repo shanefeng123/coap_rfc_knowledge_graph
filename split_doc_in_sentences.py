@@ -7,13 +7,23 @@ nltk.download('omw-1.4')
 
 # Handling rfc7252
 rfc7252 = open("data/rfc7252.txt").read()
+rfc7252 = rfc7252.split("\n")
+rfc7252_copy = rfc7252.copy()
+for i in range(len(rfc7252)):
+    line = rfc7252[i]
+    if line.startswith("Shelby, et al.") and line.endswith("]"):
+        rfc7252_copy.remove(rfc7252[i])
+    elif "RFC 7252       The Constrained Application Protocol (CoAP)     June 2014" in line:
+        rfc7252_copy.remove(rfc7252[i])
+
+rfc7252_copy = "\n".join(rfc7252_copy)
+rfc7252 = rfc7252_copy
 
 # Use nltk to tokenize sentences
 rfc7252_sentence_text = nltk.sent_tokenize(rfc7252, "english")
-rfc7252_sentence_text = rfc7252_sentence_text[210:]
-# Remove part of the headers
+# # Remove part of the headers
 rfc7252_sentence_text = [sentence for sentence in rfc7252_sentence_text if sentence != 'Shelby, et al.']
-
+#
 for i in range(len(rfc7252_sentence_text)):
     # Remove headers of the document
     sentence = rfc7252_sentence_text[i]
@@ -23,6 +33,8 @@ for i in range(len(rfc7252_sentence_text)):
             rfc7252_sentence_text[i] = sentence[split_position + 4:]
         else:
             rfc7252_sentence_text[i] = ""
+
+    # Remove the new line characters
     rfc7252_sentence_text[i] = rfc7252_sentence_text[i].replace("\n", "")
 
     # Remove lines contain numbers only
@@ -32,37 +44,34 @@ for i in range(len(rfc7252_sentence_text)):
 
     # Remove figures and tables
     if "Figure" in rfc7252_sentence_text[i] and ":" in rfc7252_sentence_text[i]:
-        rfc7252_sentence_text[i] = ""
+        rfc7252_sentence_text[i] = rfc7252_sentence_text[i][rfc7252_sentence_text[i].index("Figure"):]
     if "Table" in rfc7252_sentence_text[i] and ":" in rfc7252_sentence_text[i]:
-        rfc7252_sentence_text[i] = ""
-
-    # Change to all lower case
-    rfc7252_sentence_text[i] = rfc7252_sentence_text[i].lower()
+        rfc7252_sentence_text[i] = rfc7252_sentence_text[i][rfc7252_sentence_text[i].index("Table"):]
 
     if "+---" in rfc7252_sentence_text[i]:
         rfc7252_sentence_text[i] = ""
 
 for i in range(len(rfc7252_sentence_text)):
     if rfc7252_sentence_text[i].endswith("shelby, et al."):
-        rfc7252_sentence_text[i] = rfc7252_sentence_text[i][0:rfc7252_sentence_text[i].find("shelby, et al.")] + rfc7252_sentence_text[i + 1]
+        rfc7252_sentence_text[i] = rfc7252_sentence_text[i][0:rfc7252_sentence_text[i].find("shelby, et al.")] + \
+                                   rfc7252_sentence_text[i + 1]
         rfc7252_sentence_text[i + 1] = ""
-
+#
 rfc7252_sentence_text = [sentence for sentence in rfc7252_sentence_text if sentence != ""]
-
+#
+#
+# remove anything before introduction
+rfc7252_sentence_text = rfc7252_sentence_text[143:]
 # Remove acknowledgement and references
-rfc7252_sentence_text = rfc7252_sentence_text[:1269]
-
+rfc7252_sentence_text = rfc7252_sentence_text[:1285]
+#
 for i in range(len(rfc7252_sentence_text)):
     res = re.sub(' +', ' ', rfc7252_sentence_text[i])
     rfc7252_sentence_text[i] = res
     if rfc7252_sentence_text[i].startswith(" "):
         rfc7252_sentence_text[i] = rfc7252_sentence_text[i][1:]
-
-with open(r"./data/pretrain_sentences.txt", "w") as file:
-    for sentence in rfc7252_sentence_text:
-        file.write("%s\n" % sentence)
-    file.write("\n")
-
+    if "- " in rfc7252_sentence_text[i]:
+        rfc7252_sentence_text[i] = rfc7252_sentence_text[i].replace("- ", "-")
 
 
 # Read in RFC7959
@@ -92,8 +101,8 @@ for i in range(len(rfc7959_sentence_text)):
     if "+---" in rfc7959_sentence_text[i]:
         rfc7959_sentence_text[i] = ""
 
-    # Change to all lower case
-    rfc7959_sentence_text[i] = rfc7959_sentence_text[i].lower()
+    # # Change to all lower case
+    # rfc7959_sentence_text[i] = rfc7959_sentence_text[i].lower()
 
     # Get rid of new line characters
     rfc7959_sentence_text[i] = rfc7959_sentence_text[i].replace("\n", "")
@@ -141,8 +150,8 @@ for i in range(len(rfc8613_sentence_text)):
     if "+---" in rfc8613_sentence_text[i]:
         rfc8613_sentence_text[i] = ""
 
-    # Change to all lower case
-    rfc8613_sentence_text[i] = rfc8613_sentence_text[i].lower()
+    # # Change to all lower case
+    # rfc8613_sentence_text[i] = rfc8613_sentence_text[i].lower()
 
 rfc8613_sentence_text = [sentence for sentence in rfc8613_sentence_text if sentence != ""]
 rfc8613_sentence_text = rfc8613_sentence_text[:671]
@@ -181,8 +190,8 @@ for i in range(len(rfc8974_sentence_text)):
     if "|   " in rfc8974_sentence_text[i]:
         rfc8974_sentence_text[i] = ""
 
-    # Change to all lower case
-    rfc8974_sentence_text[i] = rfc8974_sentence_text[i].lower()
+    # # Change to all lower case
+    # rfc8974_sentence_text[i] = rfc8974_sentence_text[i].lower()
 
 rfc8974_sentence_text = [sentence for sentence in rfc8974_sentence_text if sentence != ""]
 rfc8974_sentence_text = rfc8974_sentence_text[:155]

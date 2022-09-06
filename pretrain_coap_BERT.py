@@ -4,8 +4,8 @@ from tqdm import tqdm
 import random
 import torch
 
-tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-model = BertForPreTraining.from_pretrained("bert-base-uncased")
+tokenizer = BertTokenizer.from_pretrained("bert-base-cased")
+model = BertForPreTraining.from_pretrained("bert-base-cased")
 
 data = open("./data/pretrain_sentences.txt").read().split("\n")
 data_size = len(data)
@@ -19,7 +19,7 @@ labels = []
 for i in range(data_size - 1):
     sentences_a.append(data[i])
     if random.random() > 0.5:
-        if not data[i + 1].startswith("introduction"):
+        if not data[i + 1].startswith("Introduction"):
             sentences_b.append(data[i + 1])
             labels.append(1)
         else:
@@ -199,7 +199,8 @@ for epoch in range(500):
         file.write(
             f"Epoch {epoch} average_test_loss: {average_test_loss} mlm_test_accuracy: {epoch_test_mlm_accuracy.item()} nsp_test_accuracy: {epoch_test_nsp_accuracy.item()}")
         file.write("\n")
-    if epoch_test_mlm_accuracy.item() > 0.98 and epoch_test_nsp_accuracy.item() > 0.98:
+    if epoch_train_mlm_accuracy.item() > 0.99 and epoch_test_mlm_accuracy.item() > 0.99:
         break
 
-torch.save(model, "coap_BERT.pt")
+# torch.save(model, "coap_BERT.pt")
+model.save_pretrained("./model/coap_bert")
