@@ -3,11 +3,15 @@ from accelerate import Accelerator
 from tqdm import tqdm
 import random
 import torch
+"""
+This is following the method described in the video.
+https://www.youtube.com/watch?v=IC9FaVPKlYc&t=1079s
+"""
 
 tokenizer = BertTokenizer.from_pretrained("bert-base-cased")
 model = BertForPreTraining.from_pretrained("bert-base-cased")
 
-data = open("./data/pretrain_sentences.txt").read().split("\n")
+data = open("../data/pretrain_sentences.txt").read().split("\n")
 data_size = len(data)
 
 # Prepare the data for next sentence prediction
@@ -15,7 +19,7 @@ sentences_a = []
 sentences_b = []
 labels = []
 
-# Balance out the data so we have 50% of true next sentences and 50% false next sentences
+# Balance out the data, so we have 50% of true next sentences and 50% false next sentences
 for i in range(data_size - 1):
     sentences_a.append(data[i])
     if random.random() > 0.5:
@@ -192,7 +196,7 @@ for epoch in range(500):
     print(f"epoch test mlm accuracy: {epoch_test_mlm_accuracy.item()}")
     print(f"epoch test nsp accuracy: {epoch_test_nsp_accuracy.item()}")
 
-    with open(r"pretrain_results.txt", "a") as file:
+    with open(r"../results/pretrain_results.txt", "a") as file:
         file.write(
             f"Epoch {epoch} average_train_loss: {average_train_loss} mlm_train_accuracy: {epoch_train_mlm_accuracy.item()} nsp_train_accuracy: {epoch_train_nsp_accuracy.item()}")
         file.write("\n")
@@ -203,4 +207,4 @@ for epoch in range(500):
         break
 
 # torch.save(model, "coap_BERT.pt")
-model.save_pretrained("./model/coap_bert")
+model.save_pretrained("../model/iot_bert")
