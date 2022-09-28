@@ -143,7 +143,7 @@ for similarities in cosine_similarities:
 
 # Select the top k context sentences for each rule sentence, construct the prompt and call the GPT-3 API to generate the
 # desired behaviour variables
-# openai.api_key = "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"
+# openai.api_key = "YOUR_API_KEY"
 # k = 5
 # extracted_behaviour_variables = []
 # for i in range(len(y), len(rule_sentences)):
