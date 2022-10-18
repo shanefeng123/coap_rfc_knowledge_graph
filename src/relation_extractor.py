@@ -221,7 +221,7 @@ for epoch in range(100):
             f"Epoch {epoch} average_test_loss: {average_test_loss} test_accuracy: {epoch_test_accuracy.item()}")
         file.write("\n")
 
-    if epoch_train_accuracy.item() > 0.99 and epoch_test_accuracy.item() > 0.99:
+    if epoch_test_accuracy.item() > 0.8:
         break
 
 torch.save(model, r"../model/relation_extractor.pt")

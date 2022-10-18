@@ -111,8 +111,6 @@ rfc8613 = prepare_pretrain_data("rfc8613.txt", "Selander, et al.", "RFC 8613")
 
 rfc8974 = prepare_pretrain_data("rfc8974.txt", "?", "?")
 
-
-
 # MQTT specification is a PDF document, so it needs to be parsed specifically
 mqtt_spec = []
 with pdfplumber.open("../data/mqtt_specification.pdf") as pdf:

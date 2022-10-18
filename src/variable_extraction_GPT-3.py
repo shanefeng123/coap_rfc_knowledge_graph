@@ -112,7 +112,73 @@ y.append("take any other action on a resource other than retrieval = False;")
 y.append("be performed in such a way that they are idempotent = True;")
 y.append("be prepared to receive either = True;")
 y.append("sends back an Empty Acknowledgement = True; send back the response in another Acknowledgement = False;")
-
+y.append(
+    "retransmitted request is received = True; Empty Acknowledgement be sent = True; any response be sent as separate response = True;")
+y.append("sends Confirmable response = True; Acknowledgement be Empty message = True;")
+y.append("stop retransmitting response = True; matching Acknowledgement = True; matching Reset = True;")
+y.append("request message is Non-confirmable = True; response be returned in Non-confirmable message = True;")
+y.append(
+    "be prepared to receive a Non-confirmable response in reply to a Confirmable request = True; be prepraed to receive a Confirmable response in reply to a Non-confirmable request = True;")
+y.append("server echo client-generated token in response = True;")
+y.append("generate unique tokens = True;")
+y.append("send request without using Transport Layer Security = True; use a nontrivial and randomized token = True;")
+y.append("connected to the general Internet = True; use at least 32 bits of randomness = True;")
+y.append(
+    "receiving a token it did not generate = True; treat the token as opaque and make no assumptions about its content or structure = True;")
+y.append("source endpoint of the response be the same as the destination endpoint of the original request = True;")
+y.append(
+    "Message ID of the Confirmable request and the Acknowledgement match = True; the tokens of the response and original request match = True;")
+y.append("the tokens of the response and original request match = True;")
+y.append(
+    "option is not defined for a Method or Response Code = True; be included by a sender = False; be treated like an unrecognized option = True;")
+y.append("unrecognized options of class elective = True; be silently ignored = True;")
+y.append(
+    "Unrecognized options of class critical that occur in a Confirmable request = True; return of a 4.02 (Bad Option) response = True;")
+y.append("include a diagnostic payload describing the unrecognized option = True;")
+y.append(
+    "Unrecognized options of class critical that occur in a Confirmable response = True; Unrecognized options of class critical that piggybacked in an Acknowledgement = True; the response to be rejected = True;")
+y.append(
+    "Unrecognized options of class critical that occur in a Non-confirmable message = True; the message to be rejected = True;")
+y.append(
+    "the length of an option value in a request is outside the defined range = True; be treated like an unrecognized option = True;")
+y.append("the value of an option is intended to be this default value = True; be included in the message = False;")
+y.append("it not present = True; default value be assumed = True;")
+y.append("is repeatable = True; be included one or more times = True;")
+y.append("is repeatable = False; be included more than once = False;")
+y.append(
+    "includes an option with more occurrences than the option is defined for = True; be treated like an unrecognized option = True;")
+y.append("is defined to have a payload = False; include one = False; ignore it = True;")
+y.append("no content type is given = True; sniffing be attempted = True;")
+y.append("")
+y.append("be encoded using UTF-8 = True;")
+y.append("no additional information beyond the Response Code = True; be empty = True;")
+y.append("cache responses = True;")
+y.append("indicate success and are unrecognized by an endpoint = True; be cached = False;")
+y.append("")
+y.append("wishes to prevent caching = True; include a Max-Age Option with a value of zero seconds = True;")
+y.append("add an ETag Option = True;")
+y.append("be used to satisfy the request = True; replace the stored response = True;")
+y.append("uses a proxy to make a request that will use a secure URI scheme = True; be sent using DTLS = True;")
+y.append("request to the destination times out = True; 5.04 (Gateway Timeout) response be returned = True;")
+y.append(
+    "request returns a response that cannot be processed by the proxy = True; 5.02 (Bad Gateway) response be returned = True;")
+y.append(
+    "is generated out of a cache = True; the generated Max-Age Option extend the max-age originally set by the server = False;")
+y.append("present in a proxy request = True; be processed at the proxy = True;")
+y.append(
+    "Unsafe options in a request that are not recognized by the proxy = True; 4.02 (Bad Option) response be returned = True;")
+y.append("forward to the origin server all Safe-to-Forward options that it does not recognize = True;")
+y.append("Unsafe options in a response that are not recognized = True; 5.02 (Bad Gateway) response be returned = True;")
+y.append("Safe-to-Forward options not recognized = True; be forwarded = True;")
+y.append(
+    "is unwilling or unable to act as proxy for the request URI = True; 5.05 (Proxying Not Supported) response be returned = True;")
+y.append(
+    "the authority is recognized as identifying the proxy endpoint itself = True; be treated as a local request = True;")
+y.append("")
+y.append(
+    "unrecognized or unsupported Method Code = True; 4.05 (Method Not Allowed) piggybacked response be returned = True;")
+y.append("success = True; 2.05 (Content) or 2.03 (Valid) Response Code be returned = True;")
+print(len(y))
 # To better select the context sentences, we use our pretrained IoT BERT to do sentence encoding for each of the rule
 # sentences, then we do a k-nn search to find the k nearest context sentences for each rule sentence.
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -126,7 +192,8 @@ input_ids = inputs["input_ids"].to(device)
 attention_mask = inputs["attention_mask"].to(device)
 token_type_ids = inputs["token_type_ids"].to(device)
 
-outputs = IoTBERT(input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, output_attentions=True)
+outputs = IoTBERT(input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids,
+                  output_attentions=True)
 rule_sentence_pool_embeddings = outputs[1].detach().cpu().numpy()
 
 # Calculate the cosine similarity for each not annotated rule sentence and annotated rule sentence pair
@@ -143,26 +210,26 @@ for similarities in cosine_similarities:
 
 # Select the top k context sentences for each rule sentence, construct the prompt and call the GPT-3 API to generate the
 # desired behaviour variables
-# openai.api_key = "YOUR_API_KEY"
-# k = 5
-# extracted_behaviour_variables = []
-# for i in range(len(y), len(rule_sentences)):
-#     j = 0
-#     context_sentence_ids = [sentence[1] for sentence in cosine_similarities[j][:k]]
-#     prompt = construct_contextual_prompt(i, context_sentence_ids)
-#     extracted_behaviour_variables.append(openai.Completion.create(
-#         model="text-davinci-002",
-#         prompt=prompt,
-#         temperature=0,
-#         max_tokens=100,
-#         top_p=1,
-#         frequency_penalty=0,
-#         presence_penalty=0,
-#         stop=["\n"]
-#     )["choices"][0]["text"])
-#     j += 1
-#
-# prompt = construct_contextual_prompt(73, [11, 16, 26, 27, 32])
+openai.api_key = "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"
+k = 10
+extracted_behaviour_variables = []
+for i in range(len(y), len(rule_sentences)):
+    j = 0
+    context_sentence_ids = [sentence[1] for sentence in cosine_similarities[j][:k]]
+    prompt = construct_contextual_prompt(i, context_sentence_ids)
+    extracted_behaviour_variables.append(openai.Completion.create(
+        model="text-davinci-002",
+        prompt=prompt,
+        temperature=0,
+        max_tokens=100,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0,
+        stop=["\n"]
+    )["choices"][0]["text"])
+    j += 1
+
+prompt = construct_contextual_prompt(10, [1, 3])
 # response = openai.Completion.create(
 #     model="text-davinci-002",
 #     prompt=prompt,
