@@ -45,6 +45,9 @@ def test(batch, model):
 
 
 rfc7252 = prepare_pretrain_data("rfc7252.txt", "Shelby, et al.", "RFC 7252")
+rfc7959 = prepare_pretrain_data("rfc7959.txt", "Bormann & Shelby", "RFC 7959")
+rfc8613 = prepare_pretrain_data("rfc8613.txt", "Selander, et al.", "RFC 8613")
+rfc8974 = prepare_pretrain_data("rfc8974.txt", "?", "?")
 
 MODAL_KEYWORDS = ["MUST", "REQUIRED", "SHALL", "SHOULD", "RECOMMENDED", "MAY", "OPTIONAL"]
 STRONG_MODAL_KEYWORDS = ["MUST", "REQUIRED", "SHALL"]
@@ -52,26 +55,62 @@ STRONG_MODAL_KEYWORDS = ["MUST", "REQUIRED", "SHALL"]
 PRONOUNS = ["It", "it", "Its", "its", "They", " they", "Their", "their", "Them", "them", "This field",
             "this field", "the field", "The field", "This value", "this value"]
 
-rule_sentences = []
+rfc7252_rule_sentences = []
 for sentence in rfc7252:
     for keyword in MODAL_KEYWORDS:
         if keyword in sentence:
-            rule_sentences.append(sentence)
+            rfc7252_rule_sentences.append(sentence)
             break
-rule_sentences = rule_sentences[1:]
+rfc7252_rule_sentences = rfc7252_rule_sentences[1:]
 
-pronoun_sentences_pairs = []
-for sentence in rule_sentences:
+rfc7959_rule_sentences = []
+for sentence in rfc7959:
+    for keyword in MODAL_KEYWORDS:
+        if keyword in sentence:
+            rfc7959_rule_sentences.append(sentence)
+            break
+
+rfc8613_rule_sentences = []
+for sentence in rfc8613:
+    for keyword in MODAL_KEYWORDS:
+        if keyword in sentence:
+            rfc8613_rule_sentences.append(sentence)
+            break
+
+rfc8974_rule_sentences = []
+for sentence in rfc8974:
+    for keyword in MODAL_KEYWORDS:
+        if keyword in sentence:
+            rfc8974_rule_sentences.append(sentence)
+            break
+
+rfc7252_pronoun_sentences_pairs = []
+for sentence in rfc7252_rule_sentences:
     for pronoun in PRONOUNS:
+        # Regular expression for word boundary
         if re.search(r"\b" + pronoun + r"\b", sentence):
-            pronoun_sentences_pairs.append((sentence, pronoun))
+            rfc7252_pronoun_sentences_pairs.append((sentence, pronoun))
 
+rfc7959_pronoun_sentences_pairs = []
+for sentence in rfc7959_rule_sentences:
+    for pronoun in PRONOUNS:
+        # Regular expression for word boundary
+        if re.search(r"\b" + pronoun + r"\b", sentence):
+            rfc7959_pronoun_sentences_pairs.append((sentence, pronoun))
 
-# pronoun_sentences_pairs = []
-# for pronoun_sentence in pronoun_sentences:
-#     for pronoun in PRONOUNS:
-#         if pronoun in pronoun_sentence:
-#             pronoun_sentences_pairs.append((pronoun_sentence, pronoun))
+rfc8613_pronoun_sentences_pairs = []
+for sentence in rfc8613_rule_sentences:
+    for pronoun in PRONOUNS:
+        # Regular expression for word boundary
+        if re.search(r"\b" + pronoun + r"\b", sentence):
+            rfc8613_pronoun_sentences_pairs.append((sentence, pronoun))
+
+rfc8974_pronoun_sentences_pairs = []
+for sentence in rfc8974_rule_sentences:
+    for pronoun in PRONOUNS:
+        # Regular expression for word boundary
+        if re.search(r"\b" + pronoun + r"\b", sentence):
+            rfc8974_pronoun_sentences_pairs.append((sentence, pronoun))
 
 
 def construct_context(pronoun_sentence, specification_sentences, k):
@@ -81,16 +120,42 @@ def construct_context(pronoun_sentence, specification_sentences, k):
     return " ".join(context_sentences)
 
 
-contexts = []
+rfc7252_contexts = []
 k = 5
-for i in range(len(pronoun_sentences_pairs)):
-    context = construct_context(pronoun_sentences_pairs[i][0], rfc7252, k)
-    contexts.append((context, pronoun_sentences_pairs[i][1]))
+for i in range(len(rfc7252_pronoun_sentences_pairs)):
+    context = construct_context(rfc7252_pronoun_sentences_pairs[i][0], rfc7252, k)
+    rfc7252_contexts.append((context, rfc7252_pronoun_sentences_pairs[i][1]))
+
+rfc7959_contexts = []
+k = 5
+for i in range(len(rfc7959_pronoun_sentences_pairs)):
+    context = construct_context(rfc7959_pronoun_sentences_pairs[i][0], rfc7959, k)
+    rfc7959_contexts.append((context, rfc7959_pronoun_sentences_pairs[i][1]))
+
+rfc8613_contexts = []
+k = 5
+for i in range(len(rfc8613_pronoun_sentences_pairs)):
+    context = construct_context(rfc8613_pronoun_sentences_pairs[i][0], rfc8613, k)
+    rfc8613_contexts.append((context, rfc8613_pronoun_sentences_pairs[i][1]))
+
+rfc8974_contexts = []
+k = 5
+for i in range(len(rfc8974_pronoun_sentences_pairs)):
+    context = construct_context(rfc8974_pronoun_sentences_pairs[i][0], rfc8974, k)
+    rfc8974_contexts.append((context, rfc8974_pronoun_sentences_pairs[i][1]))
 
 data = []
-for context in contexts:
+for context in rfc7252_contexts:
     data.append([context[0], f"What does '{context[1].strip()}' refer to?"])
 
+for context in rfc7959_contexts:
+    data.append([context[0], f"What does '{context[1].strip()}' refer to?"])
+
+for context in rfc8613_contexts:
+    data.append([context[0], f"What does '{context[1].strip()}' refer to?"])
+
+for context in rfc8974_contexts:
+    data.append([context[0], f"What does '{context[1].strip()}' refer to?"])
 # data = data[:34]
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -156,6 +221,54 @@ y.append([164, 168])
 y.append([135, 136])
 y.append([126, 135])
 y.append([126, 135])
+y.append([188, 189])
+y.append([209, 212])
+y.append([238, 246])
+y.append([233, 235])
+y.append([233, 235])
+y.append([146, 147])
+y.append([253, 253])
+y.append([225, 226])
+y.append([0, 0])
+y.append([0, 0])
+y.append([186, 187])
+y.append([175, 177])
+y.append([109, 112])
+y.append([105, 108])
+y.append([195, 196])
+y.append([169, 170])
+y.append([185, 186])
+y.append([151, 155])
+y.append([155, 156])
+y.append([218, 218])
+y.append([168, 171])
+y.append([182, 183])
+y.append([164, 165])
+y.append([269, 273])
+y.append([206, 210])
+y.append([0, 0])
+y.append([179, 180])
+y.append([138, 142])
+y.append([161, 162])
+y.append([144, 145])
+y.append([151, 151])
+y.append([118, 118])
+y.append([121, 121])
+y.append([141, 141])
+y.append([144, 144])
+y.append([123, 123])
+y.append([0, 0])
+y.append([0, 0])
+y.append([153, 153])
+y.append([193, 194])
+y.append([161, 164])
+y.append([151, 151])
+y.append([213, 214])
+y.append([175, 177])
+y.append([241, 243])
+y.append([133, 135])
+y.append([133, 135])
+y.append([120, 121])
 
 # print(len(y))
 
@@ -176,7 +289,7 @@ test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=4, shuffle=Tr
 model.to(device)
 optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5)
 
-for epoch in range(100):
+for epoch in range(20):
     train_loop = tqdm(train_loader, leave=True)
     overall_train_loss = 0
     num_of_train_batches = len(train_loader)
@@ -186,8 +299,6 @@ for epoch in range(100):
         train_loop.set_postfix(train_loss=train_loss.item())
         overall_train_loss += train_loss.item()
         train_loop.set_description(f"Epoch {epoch} train")
-    average_train_loss = overall_train_loss / num_of_train_batches
-    print(f"average train loss: {average_train_loss}")
 
     test_loop = tqdm(test_loader, leave=True)
     overall_test_loss = 0
@@ -198,5 +309,16 @@ for epoch in range(100):
         test_loop.set_postfix(test_loss=test_loss.item())
         overall_test_loss += test_loss.item()
         test_loop.set_description(f"Epoch {epoch} test")
+
+    average_train_loss = overall_train_loss / num_of_train_batches
+    print(f"average train loss: {average_train_loss}")
     average_test_loss = overall_test_loss / num_of_test_batches
     print(f"average test loss: {average_test_loss}")
+
+    with open(r"../results/coref_resolution.txt", "a") as file:
+        file.write(
+            f"Epoch {epoch} average_train_loss: {average_train_loss}")
+        file.write("\n")
+        file.write(
+            f"Epoch {epoch} average_test_loss: {average_test_loss}")
+        file.write("\n")
