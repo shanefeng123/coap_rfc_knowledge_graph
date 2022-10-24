@@ -4,6 +4,8 @@ import torch
 import re
 import numpy as np
 from tqdm import tqdm
+import pdfplumber
+import nltk
 
 
 class MeditationDataset(torch.utils.data.Dataset):
@@ -49,6 +51,53 @@ rfc7959 = prepare_pretrain_data("rfc7959.txt", "Bormann & Shelby", "RFC 7959")
 rfc8613 = prepare_pretrain_data("rfc8613.txt", "Selander, et al.", "RFC 8613")
 rfc8974 = prepare_pretrain_data("rfc8974.txt", "?", "?")
 
+# MQTT spec is a pdf file
+mqtt_spec = []
+with pdfplumber.open("../data/mqtt_specification.pdf") as pdf:
+    pages = pdf.pages[10: 118]
+    for page in pages:
+        text = page.extract_text(layout=False)
+        text = text.split("\n")
+        for line in text:
+            line = line.strip()
+
+            alpha = any(c.isalpha() for c in line)
+            if not alpha:
+                line = ""
+
+            if line.startswith("mqtt-v5"):
+                line = ""
+
+            if line.startswith("Standards Track Work Product"):
+                line = ""
+
+            if line == "":
+                continue
+
+            separate = line.split(" ", 1)
+            if separate[0].isdigit():
+                mqtt_spec.append(separate[1])
+            else:
+                mqtt_spec.append(line)
+
+mqtt_spec = "\n".join(mqtt_spec)
+mqtt_spec_sentences = nltk.sent_tokenize(mqtt_spec, "english")
+
+for i in range(len(mqtt_spec_sentences)):
+    mqtt_spec_sentences[i] = mqtt_spec_sentences[i].strip()
+    mqtt_spec_sentences[i] = mqtt_spec_sentences[i].replace("\n", " ")
+    mqtt_spec_sentences[i] = re.sub(' +', ' ', mqtt_spec_sentences[i])
+
+    alpha = any(c.isalpha() for c in mqtt_spec_sentences[i])
+    if not alpha:
+        mqtt_spec_sentences[i] = ""
+
+    if "Figure" in mqtt_spec_sentences[i]:
+        mqtt_spec_sentences[i] = ""
+
+mqtt_spec_sentences = [sentence for sentence in mqtt_spec_sentences if sentence != ""]
+mqtt_spec_sentences = mqtt_spec_sentences[:46] + mqtt_spec_sentences[49:]
+
 MODAL_KEYWORDS = ["MUST", "REQUIRED", "SHALL", "SHOULD", "RECOMMENDED", "MAY", "OPTIONAL"]
 STRONG_MODAL_KEYWORDS = ["MUST", "REQUIRED", "SHALL"]
 # TODO: Need to include some "such" cases but need to specify them
@@ -84,6 +133,14 @@ for sentence in rfc8974:
             rfc8974_rule_sentences.append(sentence)
             break
 
+mqtt_rule_sentences = []
+for sentence in mqtt_spec_sentences:
+    for keyword in MODAL_KEYWORDS:
+        if keyword in sentence:
+            mqtt_rule_sentences.append(sentence)
+            break
+mqtt_rule_sentences = mqtt_rule_sentences[1:]
+
 rfc7252_pronoun_sentences_pairs = []
 for sentence in rfc7252_rule_sentences:
     for pronoun in PRONOUNS:
@@ -111,6 +168,13 @@ for sentence in rfc8974_rule_sentences:
         # Regular expression for word boundary
         if re.search(r"\b" + pronoun + r"\b", sentence):
             rfc8974_pronoun_sentences_pairs.append((sentence, pronoun))
+
+mqtt_pronoun_sentences_pairs = []
+for sentence in mqtt_rule_sentences:
+    for pronoun in PRONOUNS:
+        # Regular expression for word boundary
+        if re.search(r"\b" + pronoun + r"\b", sentence):
+            mqtt_pronoun_sentences_pairs.append((sentence, pronoun))
 
 
 def construct_context(pronoun_sentence, specification_sentences, k):
@@ -144,6 +208,12 @@ for i in range(len(rfc8974_pronoun_sentences_pairs)):
     context = construct_context(rfc8974_pronoun_sentences_pairs[i][0], rfc8974, k)
     rfc8974_contexts.append((context, rfc8974_pronoun_sentences_pairs[i][1]))
 
+mqtt_contexts = []
+k = 5
+for i in range(len(mqtt_pronoun_sentences_pairs)):
+    context = construct_context(mqtt_pronoun_sentences_pairs[i][0], mqtt_spec_sentences, k)
+    mqtt_contexts.append((context, mqtt_pronoun_sentences_pairs[i][1]))
+
 data = []
 for context in rfc7252_contexts:
     data.append([context[0], f"What does '{context[1].strip()}' refer to?"])
@@ -155,6 +225,9 @@ for context in rfc8613_contexts:
     data.append([context[0], f"What does '{context[1].strip()}' refer to?"])
 
 for context in rfc8974_contexts:
+    data.append([context[0], f"What does '{context[1].strip()}' refer to?"])
+
+for context in mqtt_contexts:
     data.append([context[0], f"What does '{context[1].strip()}' refer to?"])
 # data = data[:34]
 
@@ -270,55 +343,55 @@ y.append([133, 135])
 y.append([133, 135])
 y.append([120, 121])
 
-# print(len(y))
+print(len(y))
 
-y = np.array(y)
-y_start = y[:, 0].tolist()
-y_end = y[:, 1].tolist()
-
-inputs["start_positions"] = torch.tensor(y_start)
-inputs["end_positions"] = torch.tensor(y_end)
-
-dataset = MeditationDataset(inputs)
-dataset_length = len(dataset)
-train_length = int(dataset_length * 0.9)
-test_length = dataset_length - train_length
-train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_length, test_length])
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=4, shuffle=True)
-test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=4, shuffle=True)
-model.to(device)
-optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5)
-
-for epoch in range(20):
-    train_loop = tqdm(train_loader, leave=True)
-    overall_train_loss = 0
-    num_of_train_batches = len(train_loader)
-    for train_batch in train_loop:
-        model.train()
-        train_loss = train(train_batch, model, optimizer)
-        train_loop.set_postfix(train_loss=train_loss.item())
-        overall_train_loss += train_loss.item()
-        train_loop.set_description(f"Epoch {epoch} train")
-
-    test_loop = tqdm(test_loader, leave=True)
-    overall_test_loss = 0
-    num_of_test_batches = len(test_loader)
-    for test_batch in test_loop:
-        model.eval()
-        test_loss = test(test_batch, model)
-        test_loop.set_postfix(test_loss=test_loss.item())
-        overall_test_loss += test_loss.item()
-        test_loop.set_description(f"Epoch {epoch} test")
-
-    average_train_loss = overall_train_loss / num_of_train_batches
-    print(f"average train loss: {average_train_loss}")
-    average_test_loss = overall_test_loss / num_of_test_batches
-    print(f"average test loss: {average_test_loss}")
-
-    with open(r"../results/coref_resolution.txt", "a") as file:
-        file.write(
-            f"Epoch {epoch} average_train_loss: {average_train_loss}")
-        file.write("\n")
-        file.write(
-            f"Epoch {epoch} average_test_loss: {average_test_loss}")
-        file.write("\n")
+# y = np.array(y)
+# y_start = y[:, 0].tolist()
+# y_end = y[:, 1].tolist()
+#
+# inputs["start_positions"] = torch.tensor(y_start)
+# inputs["end_positions"] = torch.tensor(y_end)
+#
+# dataset = MeditationDataset(inputs)
+# dataset_length = len(dataset)
+# train_length = int(dataset_length * 0.9)
+# test_length = dataset_length - train_length
+# train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_length, test_length])
+# train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=4, shuffle=True)
+# test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=4, shuffle=True)
+# model.to(device)
+# optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5)
+#
+# for epoch in range(20):
+#     train_loop = tqdm(train_loader, leave=True)
+#     overall_train_loss = 0
+#     num_of_train_batches = len(train_loader)
+#     for train_batch in train_loop:
+#         model.train()
+#         train_loss = train(train_batch, model, optimizer)
+#         train_loop.set_postfix(train_loss=train_loss.item())
+#         overall_train_loss += train_loss.item()
+#         train_loop.set_description(f"Epoch {epoch} train")
+#
+#     test_loop = tqdm(test_loader, leave=True)
+#     overall_test_loss = 0
+#     num_of_test_batches = len(test_loader)
+#     for test_batch in test_loop:
+#         model.eval()
+#         test_loss = test(test_batch, model)
+#         test_loop.set_postfix(test_loss=test_loss.item())
+#         overall_test_loss += test_loss.item()
+#         test_loop.set_description(f"Epoch {epoch} test")
+#
+#     average_train_loss = overall_train_loss / num_of_train_batches
+#     print(f"average train loss: {average_train_loss}")
+#     average_test_loss = overall_test_loss / num_of_test_batches
+#     print(f"average test loss: {average_test_loss}")
+#
+#     with open(r"../results/coref_resolution.txt", "a") as file:
+#         file.write(
+#             f"Epoch {epoch} average_train_loss: {average_train_loss}")
+#         file.write("\n")
+#         file.write(
+#             f"Epoch {epoch} average_test_loss: {average_test_loss}")
+#         file.write("\n")
