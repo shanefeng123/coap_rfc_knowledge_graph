@@ -159,6 +159,84 @@ mqtt_spec_sentences = [sentence for sentence in mqtt_spec_sentences if sentence 
 # This is just to ignore some references in the specification
 mqtt_spec_sentences = mqtt_spec_sentences[:46] + mqtt_spec_sentences[49:]
 
+
+amqp_spec = []
+with pdfplumber.open("../data/amqp_specification.pdf") as pdf:
+    pages = pdf.pages[16:119]
+    for page in pages:
+        text = page.extract_text(layout=False, x_tolerance=1)
+        text = text.split("\n")
+        for line in text:
+            line = line.strip()
+
+            alpha = any(c.isalpha() for c in line)
+            if not alpha:
+                line = ""
+
+            if line.startswith("amqp-core"):
+                line = ""
+
+            if line.startswith("PART"):
+                line = ""
+
+            if line.startswith("0x"):
+                line = ""
+
+            if line.startswith("<type"):
+                line = ""
+
+            if line.startswith("label="):
+                line = ""
+
+            if line.startswith("<encoding"):
+                line = ""
+
+            if line.startswith("<descriptor"):
+                line = ""
+
+            if line.startswith("Standards Track Work Product"):
+                line = ""
+
+            if line == "":
+                continue
+
+            separate = line.split(" ", 1)
+            if separate[0].isdigit():
+                amqp_spec.append(separate[1])
+            else:
+                amqp_spec.append(line)
+
+amqp_spec = "\n".join(amqp_spec)
+amqp_spec_sentences = nltk.sent_tokenize(amqp_spec, "english")
+for i in range(len(amqp_spec_sentences)):
+    amqp_spec_sentences[i] = amqp_spec_sentences[i].strip()
+    amqp_spec_sentences[i] = amqp_spec_sentences[i].replace("\n", " ")
+    amqp_spec_sentences[i] = re.sub(' +', ' ', amqp_spec_sentences[i])
+
+    alpha = any(c.isalpha() for c in amqp_spec_sentences[i])
+    if not alpha:
+        amqp_spec_sentences[i] = ""
+
+    if "Figure" in amqp_spec_sentences[i]:
+        amqp_spec_sentences[i] = ""
+
+    if amqp_spec_sentences[i].startswith("</type>"):
+        amqp_spec_sentences[i] = ""
+
+    if amqp_spec_sentences[i].startswith("<field"):
+        amqp_spec_sentences[i] = ""
+
+    if "-->" in amqp_spec_sentences[i]:
+        amqp_spec_sentences[i] = ""
+
+    if "--+" in amqp_spec_sentences[i]:
+        amqp_spec_sentences[i] = ""
+
+    if "||" in amqp_spec_sentences[i]:
+        amqp_spec_sentences[i] = ""
+
+amqp_spec_sentences = [sentence for sentence in amqp_spec_sentences if sentence != ""]
+
 # Write these sentences to a file, with a new line character to separate different documents
 with open(r"../data/pretrain_sentences.txt", "w") as file:
     for sentence in rfc7252:
@@ -179,3 +257,9 @@ with open(r"../data/pretrain_sentences.txt", "w") as file:
 
     for sentence in mqtt_spec_sentences:
         file.write("%s\n" % sentence)
+    file.write("\n")
+
+    for sentence in amqp_spec_sentences:
+        file.write("%s\n" % sentence)
+
+

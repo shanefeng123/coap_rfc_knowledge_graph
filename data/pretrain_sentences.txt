@@ -4051,3 +4051,1327 @@ If any other type of data frame is received the recipient MUST close the Network
 The receiver MUST NOT assume that MQTT Control Packets are aligned on WebSocket frame boundaries [MQTT-6.0.0-2].
 • The Client MUST include “mqtt” in the list of WebSocket Sub Protocols it offers [MQTT-6.0.0-3].
 • The WebSocket Subprotocol name selected and returned by the Server MUST be “mqtt” [MQTT- • The WebSocket URI used to connect the Client and Server has no impact on the MQTT protocol.
+
+Part 1: Types 1.1 Type System The AMQP type system deﬁnes a set of commonly used primitive types for interoperable data representation.
+AMQP values can be annotated with additional semantic information beyond that associated with the primitive type.
+This allows for the association of an AMQP value with an external type that is not present as an AMQP primitive.
+For example, a URL is commonly represented as a string, however not all strings are valid URLs, and many programming languages and/or applications deﬁne a speciﬁc type to represent URLs.
+The AMQP type system would allow for the deﬁnition of a code with which to annotate strings when the value is intended to represent a URL.
+1.1.1 Primitive Types The AMQP type system deﬁnes a standard set of primitive types for representing both common scalar values and common collections.
+The scalar types include booleans, integral numbers, ﬂoating point numbers, timestamps, UUIDs, characters, strings, binary data, and symbols.
+The collection types include arrays (monomorphic), lists (polymorphic), and maps.
+1.1.2 Described Types The primitive types deﬁned by AMQP can directly represent many of the basic types present in most popular programming languages, and therefore can be trivially used to exchange basic data.
+In practice, however, even the simplest applications have their own set of custom types used to model concepts within the application’s domain.
+In messaging applications these custom types need to be externalized for transmission.
+AMQP provides a means to do this by allowing any AMQP type to be annotated with a descriptor.
+A descriptor forms an association between a custom type, and an AMQP type.
+This association indicates that the AMQP type is actually a representation of the custom type.
+The resulting combination of the AMQP type and its descriptor is referred to as a described type.
+A described type contains two distinct kinds of type information.
+It identiﬁes both an AMQP type and a custom type (as well as the relationship between them), and so can be understood at two different levels.
+An application with intimate knowledge of a given domain can understand described types as the custom types they represent, thereby decoding and processing them according to the complete semantics of the domain.
+An application with no intimate knowledge can still understand the described types as AMQP types, decoding and processing them as such.
+1.1.3 Composite Types AMQP deﬁnes a number of composite types used for encoding structured data such as frame bodies.
+A composite type deﬁnes a composite value where each constituent value is identiﬁed by a well-known named ﬁeld.
+Each composite type deﬁnition includes an ordered sequence of ﬁelds, each with a speciﬁed name, type, and multiplicity.
+Composite type deﬁnitions also include one or more descriptors (symbolic and/or numeric) for identifying their deﬁned representations.
+Composite types are formally deﬁned using the XML notation deﬁned in section 1.3.
+1.1.4 Restricted Types AMQP deﬁnes the notion of a restricted type.
+This is a new type derived from an existing type where the permitted values of the new type are a subset of the values of the existing type.
+Restricted types are commonly used programming constructs, the most frequent being “enumerations” which in AMQP terminology are restrictions of the integral types.
+However, the AMQP notion of restricted types can also represent more open ended restrictions such as a URL which can be thought of as a restriction of the string type.
+A restricted type deﬁnition might limit the permitted values to either a pre-deﬁned ﬁxed set, or an open-ended set.
+In the former case, each permitted value is called a choice and all possible choices are listed in the formal type deﬁnition.
+In the latter case, the nature of the restriction is speciﬁed as text in the formal type deﬁnition.
+The existing type from which a restricted type is derived is referred to as the source type for the restriction.
+A restricted type might or might not be annotated with a descriptor on the wire depending on the formal deﬁnition for the type.
+1.2 Type Encodings An AMQP encoded data stream consists of untyped bytes with embedded constructors.
+The embedded con- structor indicates how to interpret the untyped bytes that follow.
+Constructors can be thought of as functions that consume untyped bytes from an open ended byte stream and construct a typed value.
+An AMQP encoded data stream always begins with a constructor.
+A primitive format code is a constructor for an AMQP primitive type.
+A described format code consists of a descriptor and a primitive format-code.
+A descriptor deﬁnes how to produce a domain speciﬁc type from an AMQP primitive value.
+The formal BNF for constructors is given below.
+Values encoded within each category share the same basic structure parameterized by width.
+The subcategory within a format-code identiﬁes both the category and width.
+Fixed Width The size of ﬁxed-width data is determined based solely on the subcategory of the format code for the ﬁxed width value.
+Variable Width The size of variable-width data is determined based on an encoded size that preﬁxes the data.
+The width of the encoded size is determined by the subcategory of the format code for the variable width value.
+Compound Compound data is encoded as a size and a count followed by a polymorphic sequence of count constituent values.
+Each constituent value is preceded by a constructor that indicates the semantics and encoding of the data that follows.
+The width of the size and count is determined by the subcategory of the format code for the compound value.
+Array Array data is encoded as a size and count followed by an array element constructor followed by a monomorphic sequence of values encoded according to the supplied array element constructor.
+The width of the size and count is determined by the subcategory of the format code for the array.
+distinctly typed values.
+typed values.
+uniformly typed values.
+Please note that this XML notation is used only to deﬁne the type and is never used to represent encoded data.
+All encoded AMQP data is binary as described in section 1.2.
+The type element formally deﬁnes a semantic type used to exchange data on the wire.
+Every type deﬁnition has the following general form.
+label A short description of the type.
+class A string identifying what class of type is being deﬁned: “primitive”, “composite”, or “re- stricted”.
+provides A comma separated list of archetypes (see ﬁeld element).
+There are three different classes of types identiﬁed by the “class” attribute: primitive, composite, and restricted.
+1.3.1 Primitive Type Notation A “primitive” type deﬁnition will contain one or more encoding elements that describe how the data is formatted on the wire.
+Primitive types do not contain the descriptor, ﬁeld, or choice elements.
+The speciﬁcation deﬁnes 4 general categories of encodings: ﬁxed, variable, compound, and array.
+A speciﬁc encoding provides further details of how data is formatted within its general category.
+label A short description of the encoding.
+code The numeric value that preﬁxes the encoded data on the wire.
+category The category of the encoding: “ﬁxed”, “variable”, “compound”, or “array”.
+width The width of the encoding or the size/count preﬁxes depending on the category.
+1.3.2 Composite Type Notation A “composite” type deﬁnition speciﬁes a new kind of record type, i.e., a type composed of a ﬁxed number of ﬁelds whose values are each of a speciﬁc type.
+A composite type does not have a new encoding, but is sent on the wire as a list annotated by a speciﬁc descriptor value that identiﬁes it as a representation of the deﬁned composite type.
+A composite type deﬁnition will contain a descriptor and zero or more ﬁeld elements.
+Composite types do not contain encoding or choice elements.
+The source attribute of a composite type will always be “list”, other values are reserved for future use.
+code The numeric value.
+1.3.4 Field Notation The ﬁeld element identiﬁes a ﬁeld within a composite type.
+type The type of the ﬁeld.
+This attribute deﬁnes the range of values that are permitted to appear in this ﬁeld.
+It might name a speciﬁc type, in which case the values are restricted to that type, or it might be the special character “*”, in which case a value of any type is permitted.
+In the latter case the range of values might be further restricted by the requires attribute.
+requires A comma separated list of archetypes.
+Field values are restricted to types providing at least one of the speciﬁed archetypes.
+default A default value for the ﬁeld if no value is encoded.
+label A short description of the ﬁeld.
+mandatory “true” iff a non null value for the ﬁeld is always encoded.
+multiple “true” iff the ﬁeld can have multiple values of its speciﬁed type.
+1.3.5 Restricted Type Notation A “restricted” type deﬁnition speciﬁes a new kind of type whose values are restricted to a subset of the values that might be represented with another type.
+The source attribute identiﬁes the base type from which a restricted type is derived.
+A restricted type can have a descriptor element in which case it is identiﬁed by a descriptor on the wire.
+The values permitted by a restricted type can be speciﬁed either via documentation, or directly limited to a ﬁxed number of values by the choice elements contained within the deﬁnition.
+value The permitted value.
+1.4 Composite Type Representation AMQP composite types are represented as a described list.
+Each element in the list is positionally correlated with the ﬁelds listed in the composite type deﬁnition.
+The permitted element values are determined by the type speci- ﬁcation and multiplicity of the corresponding ﬁeld deﬁnitions.
+When the trailing elements of the list representation are null, they MAY be omitted.
+The descriptor of the list indicates the speciﬁc composite type being represented.
+The multiple attribute of a ﬁeld description controls whether multiple element values are permitted in the repre- sentation.
+A single element of the type speciﬁed in the ﬁeld description is always permitted.
+Multiple values are represented by the use of an array where the type of the elements in the array is the type deﬁned in the ﬁeld deﬁnition.
+Note that a null value and a zero-length array (with a correct type for its elements) both describe an absence of a value and MUST be treated as semantically identical.
+A ﬁeld which is deﬁned as both multiple and mandatory MUST contain at least one value (i.e.
+for such a ﬁeld both null and an array with no entries are invalid).
+The described list shown below is an example composite value of the book type deﬁned above.
+A trailing null element corresponding to the absence of an ISBN value is depicted in the example, but can optionally be omitted according to the encoding rules.
+To allow for users of the type system to deﬁne their own descriptors without collision of descriptor values, an assignment policy for symbolic and numeric descriptors is given below.
+The namespace for both symbolic and numeric descriptors is divided into distinct domains.
+Each domain has a deﬁned symbol and/or 4 byte numeric id assigned by the AMQP working group.
+For numeric ids the assigned domain-id will be equal to the IANA Private Enterprise Number (PEN) of the requesting organisation [IANAPEN] with domain-id 0 reserved for descriptors deﬁned in the AMQP speciﬁcation.
+Descriptors are then assigned within each domain according to the following rules: symbolic descriptors <domain>:<name> numeric descriptors (domain-id << 32) | descriptor-id 1.6 Primitive Type Deﬁnitions 1.6.1 null Indicates an empty value.
+1.6.12 double 64-bit ﬂoating point number (IEEE 754-2008 binary64).
+1.6.13 decimal32 32-bit decimal number (IEEE 754-2008 decimal32).
+1.6.14 decimal64 64-bit decimal number (IEEE 754-2008 decimal64).
+1.6.15 decimal128 128-bit decimal number (IEEE 754-2008 decimal128).
+1.6.16 char A single Unicode character.
+1.6.17 timestamp An absolute point in time.
+For example, 1311704463521 represents the moment 2011-07-26T18:21:03.521Z.
+1.6.18 uuid A universally unique identiﬁer as deﬁned by RFC-4122 section 4.1.2 .
+1.6.19 binary A sequence of octets.
+1.6.21 symbol Symbolic values from a constrained domain.
+Although the set of possible domains is open-ended, typically the both number and size of symbols in use for any given application will be small, e.g.
+small enough that it is reasonable to cache all the distinct values.
+Symbols are encoded as ASCII characters [ASCII].
+1.6.22 list A sequence of polymorphic values.
+an equal number of keys and values).
+A map in which there exist two identical key values is invalid.
+Unless known to be otherwise, maps MUST be considered to be ordered, that is, the order of the key-value pairs is semantically important and two maps which are different only in the order in which their key-value pairs are encoded are not equal.
+1.6.24 array A sequence of values of a single type.
+Nodes are named entities responsible for the safe storage and/or delivery of messages.
+Messages can originate from, terminate at, or be relayed by nodes.
+A link is a unidirectional route between two nodes.
+A link attaches to a node at a terminus.
+There are two kinds of terminus: sources and targets.
+A terminus is responsible for tracking the state of a particular stream of incoming or outgoing messages.
+Sources track outgoing messages and targets track incoming messages.
+Messages only travel along a link if they meet the entry criteria at the source.
+As a message travels through an AMQP network, the responsibility for safe storage and delivery of the message is transferred between the nodes it encounters.
+The link protocol (deﬁned in section 2.6) manages the transfer of responsibility between the source and target.
+Examples of containers are brokers and client applications.
+Each container MAY hold many nodes.
+Examples of AMQP nodes are producers, consumers, and queues.
+Producers and consumers are the elements within an application that generate and process messages.
+Queues are entities that store and forward messages.
+This portion of the speciﬁcation is not concerned with the internal workings of any sort of node, and only deals with the mechanics of unambiguously transferring a message from one node to another.
+In order for communication to occur between nodes in different containers a connection needs be established.
+A frame is the unit of work carried on the wire.
+Connections have a negotiated maximum frame size allowing byte streams to be easily defragmented into complete frame bodies representing the independently parsable units formally deﬁned in sec- tion 2.7.
+The precise requirement for a connection is that if the nth frame arrives, all frames prior to n MUST also have arrived.
+It is assumed connections are transient and can fail for a variety of reasons resulting in the loss of an unknown number of frames, but they are still subject to the aforementioned ordered reliability criteria.
+This is similar to the guarantee that TCP or SCTP provides for byte streams, and the speciﬁcation deﬁnes a framing system used to parse a byte stream into a sequence of frames for use in establishing an AMQP connection (see section 2.3).
+An AMQP connection is divided into a negotiated number of independent unidirectional channels.
+Each frame is marked with the channel number indicating its parent channel, and the frame sequence for each channel is multiplexed into a single frame sequence for the connection.
+An AMQP session correlates two unidirectional channels to form a bidirectional, sequential conversation between two containers.
+Sessions provide a ﬂow control scheme based on the number of transfer frames transmitted.
+Since frames have a maximum size for a given connection, this provides ﬂow control based on the number of bytes transmitted and can be used to optimize performance.
+Both connections and sessions are modeled by each peer as endpoints that store local and last known remote state regarding the connection or session in question.
+A link is a unidirectional route between two nodes.
+A link attaches to a node at a terminus.
+There are two kinds of terminus: sources and targets.
+A terminus is responsible for tracking the state of a particular stream of incoming or outgoing messages.
+Sources track outgoing messages and targets track incoming messages.
+Messages only travel along a link if they meet the entry criteria at the source.
+Links provide a credit-based ﬂow control scheme based on the number of messages transmitted, allowing appli- cations to control which nodes to receive messages from at a given point (e.g., to explicitly fetch a message from a given queue).
+A link endpoint associates a terminus with a session endpoint.
+Within a session, the link protocol (deﬁned in section 2.6) is used to establish links between sources and targets and to transfer messages across them.
+A single session can be simultaneously associated with any number of links.
+Links are named, and the state at the termini can live longer than the connection on which they were established.
+The following table lists the frame bodies and deﬁnes which endpoints handle them.
+The protocol header consists of the upper case ASCII letters “AMQP” followed by a protocol id of zero, followed by three unsigned bytes representing the major, minor, and revision of the protocol version (currently 1 (MAJOR), 0 (MINOR), 0 (REVISION)).
+If the incoming and outgoing protocol headers do not match, both peers MUST close their outgoing stream and SHOULD read the incoming stream until it is terminated.
+The AMQP peer which acted in the role of the TCP client (i.e.
+the peer that actively opened the connection) MUST immediately send its outgoing protocol header on establishment of the TCP connection.
+The AMQP peer which acted in the role of the TCP server MAY elect to wait until receiving the incoming protocol header before sending its own outgoing protocol header.
+This permits a multi protocol server implementation to choose the correct protocol version to ﬁt each client.
+Two AMQP peers agree on a protocol version as follows (where the words “client” and “server” refer to the roles being played by the peers at the TCP connection level): • When the client opens a new socket connection to a server, it MUST send a protocol header with the client’s preferred protocol version.
+• If the requested protocol version is supported, the server MUST send its own protocol header with the requested version to the socket, and then proceed according to the protocol deﬁnition.
+• If the requested protocol version is not supported, the server MUST send a protocol header with a sup- ported protocol version and then close the socket.
+• When choosing a protocol version to respond with, the server SHOULD choose the highest supported version that is less than or equal to the requested version.
+If no such version exists, the server SHOULD respond with the highest supported version.
+• If the server cannot parse the protocol header, the server MUST send a valid protocol header with a sup- ported protocol version and then close the socket.
+• Note that if the server only supports a single protocol version, it is consistent with the above rules for the server to send its protocol header prior to receiving anything from the client and to subsequently close the socket if the client’s protocol header does not match the server’s.
+Based on this behavior a client can discover which protocol versions a server supports by attempting to connect with its highest supported version and reconnecting with a version less than or equal to the version received back from the server.
+The protocol id is not a part of the protocol version and thus the rule above regarding the highest supported version does not apply.
+A client might request use of a protocol id that is unacceptable to a server - for example, it might request a raw AMQP connection when the server is conﬁgured to require a TLS or SASL security layer (See Part 5: section 5.1).
+In this case, the server MUST send a protocol header with an acceptable protocol id (and version) and then close the socket.
+It MAY choose any protocol id.
+The frame header includes mandatory information necessary to parse the rest of the frame including size and type information.
+extended header The extended header is a variable width area preceding the frame body.
+This is an extension point deﬁned for future expansion.
+The treatment of this area depends on the frame type.
+frame body The frame body is a variable width sequence of bytes the format of which depends on the frame type.
+2.3.1 Frame Layout The diagram below shows the details of the general frame layout for all frame types.
+<TYPE-SPECIFIC> .
+| (DOFF * 4 - 8) bytes 4*DOFF | | | .
+<TYPE-SPECIFIC> .
+This is an unsigned 32-bit integer that MUST contain the total frame size of the frame header, extended header, and frame body.
+The frame is malformed if the size is less than the size of the frame header (8 bytes).
+DOFF Byte 4 of the frame header is the data offset.
+This gives the position of the body within the frame.
+The value of the data offset is an unsigned, 8-bit integer specifying a count of 4-byte words.
+Due to the mandatory 8-byte frame header, the frame is malformed if the value is less than 2.
+TYPE Byte 5 of the frame header is a type code.
+The type code indicates the format and purpose of the frame.
+The subsequent bytes in the frame header MAY be interpreted differently depending on the type of the frame.
+A type code of 0x00 indicates that the frame is an AMQP frame.
+A type code of 0x01 indicates that the frame is a SASL frame, see Part 5: section 5.3.
+2.3.2 AMQP Frames Bytes 6 and 7 of an AMQP frame contain the channel number (see section 2.1).
+The frame body is deﬁned as a performative followed by an opaque payload.
+The performative MUST be one of those deﬁned in section 2.7 and is encoded as a described type in the AMQP type system.
+The remaining bytes in the frame body form the payload for that frame.
+The presence and format of the payload is deﬁned by the semantics of the given performative.
+<IGNORED> .
+| (DOFF * 4 - 8) bytes 4*DOFF | PERFORMATIVE: | | .
+Open / Begin / Attach .
+Flow / Transfer / Disposition .
+Detach / End / Close .
+PAYLOAD .
+2.4 Connections AMQP connections are divided into a number of unidirectional channels.
+A connection endpoint contains two kinds of channel endpoints: incoming and outgoing.
+A connection endpoint maps incoming frames other than open and close to an incoming channel endpoint based on the incoming channel number, as well as relaying frames produced by outgoing channel endpoints, marking them with the associated outgoing channel number before sending them.
+This requires connection endpoints to contain two mappings.
+One from incoming channel number to incoming channel endpoint, and one from outgoing channel endpoint, to outgoing channel number.
+Channel numbers are scoped relative to direction, thus there is no causal relation between incom- ing and outgoing channels that happen to be identiﬁed by the same number.
+This means that if a bidirectional endpoint is constructed from an incoming channel endpoint and an outgoing channel endpoint, the channel num- ber used for incoming frames is not necessarily the same as the channel number used for outgoing frames.
+2.4.1 Opening A Connection Each AMQP connection begins with an exchange of capabilities and limitations, including the maximum frame size.
+Prior to any explicit negotiation, the maximum frame size is 512 (MIN-MAX-FRAME-SIZE) and the maximum channel number is 0.
+After establishing or accepting a TCP connection and sending the protocol header, each peer MUST send an open frame before sending any other frames.
+The open frame describes the capabilities and limits of that peer.
+The open frame can only be sent on channel 0.
+After sending the open frame and reading its partner’s open frame a peer MUST operate within mutually acceptable limitations from this point forward.
+A peer MAY do this by starting to send subsequent frames before receiving the partner’s connection header or open frame.
+This is permitted so long as the pipelined frames are known a priori to conform to the capabilities and limitations of its partner.
+For example, this can be accomplished by keeping the use of the connection within the capabilities and limits expected of all AMQP implementations as deﬁned by the speciﬁcation of the open frame.
+2.4.3 Closing A Connection Prior to closing a connection, each peer MUST write a close frame with a code indicating the reason for closing.
+This frame MUST be the last thing ever written onto a connection.
+After writing this frame the peer SHOULD con- tinue to read from the connection until it receives the partner’s close frame (in order to guard against erroneously or maliciously implemented partners, a peer SHOULD implement a timeout to give its partner a reasonable time to receive and process the close before giving up and simply closing the underlying transport mechanism).
+A close frame MAY be received on any channel up to the maximum channel number negotiated in open.
+However, implementations SHOULD send it on channel 0, and MUST send it on channel 0 if pipelined in a single batch with the corresponding open.
+There is no requirement for an implementation to read from a socket after a close performative has been received.
+2.4.4 Simultaneous Close Normally one peer will initiate the connection close, and the partner will send its close in response.
+However, be- cause both endpoints MAY simultaneously choose to close the connection for independent reasons, it is possible for a simultaneous close to occur.
+In this case, the only potentially observable difference from the perspective of each endpoint is the code indicating the reason for the close.
+The timeout is triggered by a local peer when no frames are received after a threshold value is exceeded.
+The idle timeout is measured in milliseconds, and starts from the time the last frame is received.
+If the threshold is exceeded, then a peer SHOULD try to gracefully close the connection using a close frame with an error explaining why.
+If the remote peer does not respond gracefully within a threshold to this, then the peer MAY close the TCP socket.
+Each peer has its own (independent) idle timeout.
+At connection open each peer communicates the maximum period between activity (frames) on the connection that it desires from its partner.The open frame carries the idle- time-out ﬁeld for this purpose.
+To avoid spurious timeouts, the value in idle-time-out SHOULD be half the peer’s actual timeout threshold.
+If a peer can not, for any reason support a proposed idle timeout, then it SHOULD close the connection using a close frame with an error explaining why.
+There is no requirement for peers to support arbitrarily short or long idle timeouts.
+The use of idle timeouts is in addition to any network protocol level control.
+Implementations SHOULD make use of TCP keep-alive wherever possible in order to be good citizens.
+If a peer needs to satisfy the need to send trafﬁc to prevent idle timeout, and has nothing to send, it MAY send an empty frame, i.e., a frame consisting solely of a frame header, with no frame body.
+Implementations MUST be prepared to handle empty frames arriving on any valid channel, though implementations SHOULD use channel 0 when sending empty frames, and MUST use channel 0 if a maximum channel number has not yet been negotiated (i.e., before an open frame has been received).
+Apart from this use, empty frames have no meaning.
+Empty frames can only be sent after the open frame is sent.
+As they are a frame, they MUST NOT be sent after the close frame has been sent.
+As an alternative to using an empty frame to prevent an idle timeout, if a connection is in a permissible state, an implementation MAY choose to send a ﬂow frame for a valid session.
+If during operation a peer exceeds the remote peer’s idle timeout’s threshold, e.g., because it is heavily loaded, it SHOULD gracefully close the connection by using a close frame with an error explaining why.
+2.4.6 Connection States START In this state a connection exists, but nothing has been sent or received.
+This is the state an implementation would be in immediately after performing a socket connect or socket accept.
+HDR RCVD In this state the connection header has been received from the peer but a connection header has not been sent.
+HDR SENT In this state the connection header has been sent to the peer but no connection header has been received.
+HDR EXCH In this state the connection header has been sent to the peer and a connection header has been received from the peer.
+OPEN PIPE In this state both the connection header and the open frame have been sent but nothing has been received.
+OC PIPE In this state, the connection header, the open frame, any pipelined connection trafﬁc, and the close frame have been sent but nothing has been received.
+OPEN RCVD In this state the connection headers have been exchanged.
+An open frame has been re- ceived from the peer but an open frame has not been sent.
+OPEN SENT In this state the connection headers have been exchanged.
+An open frame has been sent to the peer but no open frame has yet been received.
+CLOSE PIPE In this state the connection headers have been exchanged.
+An open frame, any pipelined connection trafﬁc, and the close frame have been sent but no open frame has yet been received from the peer.
+OPENED In this state the connection header and the open frame have been both sent and received.
+CLOSE RCVD In this state a close frame has been received indicating that the peer has initiated an AMQP close.
+No further frames are expected to arrive on the connection; however, frames can still be sent.
+If desired, an implementation MAY do a TCP half-close at this point to shut down the read side of the connection.
+CLOSE SENT In this state a close frame has been sent to the peer.
+It is illegal to write anything more onto the connection, however there could potentially still be incoming frames.
+If desired, an implementation MAY do a TCP half-close at this point to shutdown the write side of the connection.
+DISCARDING The DISCARDING state is a variant of the CLOSE SENT state where the close is triggered by an error.
+In this case any incoming frames on the connection MUST be silently discarded until the peer’s close frame is received.
+END In this state it is illegal for either endpoint to write anything more onto the connection.
+The connection can be safely closed and discarded.
+2.4.7 Connection State Diagram The graph below depicts a complete state diagram for each endpoint.
+The boxes represent states, and the arrows represent state transitions.
+Each arrow is labeled with the action that triggers that particular transition.
+Sessions serve as the context for link communication.
+Any number of links of any directionality can be attached to a given session.
+However, a link MUST NOT be attached to more than one session at a time.
+A session can be viewed as multiplex- ing link trafﬁc, much like a connection multiplexes session trafﬁc.
+However, unlike the sessions on a connection, links on a session are not entirely independent since they share a common delivery sequence scoped to the ses- sion.
+This common sequence allows endpoints to efﬁciently refer to sets of deliveries regardless of the originating link.
+This is of particular beneﬁt when a single application is receiving messages along a large number of different links.
+In this case the session provides aggregation of otherwise independent links into a single stream that can be efﬁciently acknowledged by the receiving application.
+2.5.1 Establishing A Session Sessions are established by creating a session endpoint, assigning it to an unused channel number, and sending a begin announcing the association of the session endpoint with the outgoing channel.
+Upon receiving the begin the partner will check the remote-channel ﬁeld and ﬁnd it empty.
+This indicates that the begin is referring to remotely initiated session.
+The partner will therefore allocate an unused outgoing channel for the remotely initiated session and indicate this by sending its own begin setting the remote-channel ﬁeld to the incoming channel of the remotely initiated session.
+To make it easier to monitor AMQP sessions, it is RECOMMENDED that implementations always assign the lowest available unused channel number.
+The remote-channel ﬁeld of a begin frame MUST be empty for a locally initiated session, and MUST be set when announcing the endpoint created as a result of a remotely initiated session.
+Sessions are explicitly ended when either endpoint chooses to end the session.
+When a session is explicitly ended, an end frame is sent to announce the disassociation of the endpoint from its outgoing channel, and to carry error information when relevant.
+(2) At this point the session endpoint is disassociated from the outgoing channel on B, and the incoming channel on A.
+If this happens, it will appear to each peer as though their partner’s spontaneously initiated end frame is actually an answer to the peers initial end frame.
+(2) At this point no more frames can be sent by B.
+(3) At this point endpoint A is fully ended.
+(4) At this point endpoint B is fully ended.
+It MUST then proceed to discard all incoming frames from the remote endpoint until receiving the remote endpoint’s corresponding end frame.
+In this state an endpoint cannot send or receive frames.
+BEGIN SENT In the BEGIN SENT state, the session endpoint is assigned an outgoing channel number, but there is no entry in the incoming channel map.
+In this state the endpoint MAY send frames but cannot receive them.
+BEGIN RCVD In the BEGIN RCVD state, the session endpoint has an entry in the incoming channel map, but has not yet been assigned an outgoing channel number.
+The endpoint MAY receive frames, but cannot send them.
+MAPPED In the MAPPED state, the session endpoint has both an outgoing channel number and an entry in the incoming channel map.
+The endpoint MAY both send and receive frames.
+END SENT In the END SENT state, the session endpoint has an entry in the incoming channel map, but is no longer assigned an outgoing channel number.
+The endpoint MAY receive frames, but cannot send them.
+END RCVD In the END RCVD state, the session endpoint is assigned an outgoing channel number, but there is no entry in the incoming channel map.
+The endpoint MAY send frames, but cannot receive them.
+DISCARDING The DISCARDING state is a variant of the END SENT state where the end is triggered by an error.
+In this case any incoming frames on the session MUST be silently discarded until the peer’s end frame is received.
+2.5.6 Session Flow Control The session endpoint assigns each outgoing transfer frame an implicit transfer-id from a session scoped se- quence.
+Each session endpoint maintains the following state to manage incoming and outgoing transfer frames: next-incoming-id The next-incoming-id identiﬁes the expected transfer-id of the next incoming transfer frame.
+incoming-window The incoming-window deﬁnes the maximum number of incoming transfer frames that the endpoint can currently receive.
+This identiﬁes a current maximum incoming transfer-id that can be computed by subtracting one from the sum of incoming-window and next-incoming- id.
+next-outgoing-id The next-outgoing-id is the transfer-id to assign to the next transfer frame.
+The next- outgoing-id MAY be initialized to an arbitrary value and is incremented after each successive transfer according to RFC-1982 [RFC1982] serial number arithmetic.
+outgoing-window The outgoing-window deﬁnes the maximum number of outgoing transfer frames that the endpoint can currently send.
+This identiﬁes a current maximum outgoing transfer-id that can be computed by subtracting one from the sum of outgoing-window and next-outgoing-id.
+remote-incoming-window The remote-incoming-window reﬂects the maximum number of outgoing transfers that can be sent without exceeding the remote endpoint’s incoming-window.
+This value MUST be decremented after every transfer frame is sent, and recomputed when informed of the remote session endpoint state.
+remote-outgoing-window The remote-outgoing-window reﬂects the maximum number of incoming transfers that MAY arrive without exceeding the remote endpoint’s outgoing-window.
+This value MUST be decremented after every incoming transfer frame is received, and recomputed when in- formed of the remote session endpoint state.
+When this window shrinks, it is an indication of outstanding transfers.
+Settling outstanding transfers can cause the window to grow.
+Once initialized, this state is updated by various events that occur in the lifespan of a session and its associated links: sending a transfer Upon sending a transfer, the sending endpoint will increment its next-outgoing-id, decre- ment its remote-incoming-window, and MAY (depending on policy) decrement its outgoing- window.
+receiving a transfer Upon receiving a transfer, the receiving endpoint will increment the next-incoming-id to match the implicit transfer-id of the incoming transfer plus one, as well as decrementing the remote-outgoing-window, and MAY (depending on policy) decrement its incoming-window.
+receiving a ﬂow When the endpoint receives a flow frame from its peer, it MUST update the next-incoming-id directly from the next-outgoing-id of the frame, and it MUST update the remote-outgoing- window directly from the outgoing-window of the frame.
+The remote-incoming-window is computed as follows: next-incoming-id + incoming-window - next-outgoing-id ﬂow ﬂow endpoint If the next-incoming-id ﬁeld of the flow frame is not set, then remote-incoming-window is computed as follows: initial-outgoing-id + incoming-window - next-outgoing-id endpoint ﬂow endpoint 2.6 Links A link provides a unidirectional transport for messages between a source and a target.
+The primary responsibility of a source or target (a terminus) is to maintain a record of the status of each active delivery attempt until such a time as it is safe to forget.
+These are referred to as unsettled deliveries.
+When a terminus forgets the state asso- ciated with a delivery-tag, it is considered settled.
+Settling a delivery at a terminus is an idempotent idempotent, i.e., a delivery can transition from unsettled to settled, but never the reverse.
+Each delivery attempt is assigned a unique delivery-tag at the source.
+The status of an active delivery attempt is known as the delivery state of the delivery.
+Link endpoints interface between a terminus and a session endpoint, and maintain additional state used for active communication between the local and remote endpoints.
+Therefore there are two types of endpoint: senders and receivers.
+When the sending application submits a message to the sender for transport, it also supplies the delivery-tag used by the source to track the delivery state.
+The link endpoint assigns each message a unique delivery-id from a session scoped sequence.
+These delivery-ids are used to efﬁciently reference subsets of the outstanding deliveries on a session.
+Termini can exist beyond their associated link endpoints, so it is possible for a session to terminate and the termini to remain.
+A link is said to be suspended if the termini exist, but have no associated link endpoints.
+The process of associating new link endpoints with existing termini and re-establishing communication is referred to as resuming a link.
+The original link endpoint state is not necessary for resumption of a link.
+Only the unsettled delivery state main- tained at the termini is necessary for link resume, and this need not be stored directly.
+The form of delivery-tags is intentionally left open-ended so that they and their related delivery state can, if desired, be (re)constructed from application state, thereby minimizing or eliminating the need to retain additional protocol-speciﬁc state in order to resume a link.
+2.6.1 Naming A Link Links are named so that they can be recovered when communication is interrupted.
+Link names MUST uniquely identify the link amongst all links of the same direction between the two participating containers.
+Link names are only used when attaching a link, so they can be arbitrarily long without a signiﬁcant penalty.
+A link’s name uniquely identiﬁes the link from the container of the source to the container of the target node, i.e., if the container of the source node is A, and the container of the target node is B, the link can be globally identiﬁed by the (ordered) tuple (A,B,<name>).
+Consequently, a link can only be active in one connection at a time.
+If an attempt is made to attach the link subsequently when it is not suspended, then the link can be ’stolen’, i.e., the second attach succeeds and the ﬁrst attach MUST then be closed with a link error of stolen.
+This behavior ensures that in the event of a connection failure occurring and being noticed by one party, that re-establishment has the desired effect.
+2.6.2 Link Handles Each link endpoint is assigned a numeric handle used by the peer as a shorthand to refer to the link in all frames that reference the link (attach, detach, flow, transfer, disposition).
+This handle is assigned by the initial attach frame and remains in use until the link is detached.
+The two endpoints are not REQUIRED to use the same handle.
+This means a peer is free to independently chose its handle when a link endpoint is associated with the session.
+The locally chosen handle is referred to as the output handle.
+The remotely chosen handle is referred to as the input handle.
+At an endpoint, a link is considered to be attached when the link endpoint exists and has both input and output handles assigned at an active session endpoint.
+A link is considered to be detached when the link endpoint exists, but is not assigned either input or output handles.
+A link can be considered half attached (or half detached) when only one of the input or output handles is assigned.
+This frame carries the state of the newly created link endpoint, including the local and remote termini, one being the source and one being the target depending on the directionality of the link endpoint.
+On receipt of the attach, the remote session endpoint creates a corresponding link endpoint and informs its application of the attaching link.
+The application attempts to locate the terminus previously associated with the link.
+This terminus is associated with the link endpoint and can be updated if its properties do not match those sent by the remote link endpoint.
+If no such terminus exists, the application MAY choose to create one using the properties supplied by the remote link endpoint.
+The link endpoint is then mapped to an unused handle, and an attach frame is issued carrying the state of the newly created endpoint.
+Note that if the application chooses not to create a terminus, the session endpoint will still create a link endpoint and issue an attach indicating that the link endpoint has no associated local terminus.
+In this case, the session endpoint MUST immediately detach the newly created link endpoint.
+(2) At this point the link is established, but it is to a nonexistent target.
+(2) At this point the link is reestablished with source=X, target=Y.
+In this case, the link is always considered to be between the source as described by the sender, and the target as described by the receiver.
+This can happen both when establishing and when resuming a link.
+When a link is established, it is possible for an endpoint not to have all the capabilities necessary to create the terminus exactly matching the expectations of the peer.
+If this happens, the endpoint MAY adjust the properties in order to succeed in creating the terminus.
+In this case the endpoint MUST report the actual properties of the terminus as created.
+When resuming a link, it is possible that the properties of the source and target have changed while the link was suspended.
+When this happens, the termini properties communicated in the source and target ﬁelds of the attach frames could be in conﬂict.
+In this case, the sender is considered to hold the authoritative version of the source properties, the receiver is considered to hold the authoritative version of the target properties.
+As above, the resulting link is constructed to be between the source as described by the sender, and the target as described by the receiver.
+Once the link is resumed, either peer is free to continue if the updated properties are acceptable, or, if not, detach the link.
+Note that a peer MUST take responsibility for verifying that the remote terminus meets its requirements.
+The remote peer SHOULD NOT attempt to preempt whether the terminus will meet the requirements of its partner.
+This is equally true both for creating and resuming links.
+(2) At this point the link is established with source=A, target=C.
+All that is necessary is the link name and direction.
+This is referred to as recovering a link.
+This is done by creating a new link endpoint with an empty source or target for incoming or outgoing links respectively.
+The full link state is then constructed from the authoritative source or target supplied by the other endpoint once the link is established.
+If the remote peer has no record of the link, then no terminus will be located, and local terminus (source or target as appropriate) ﬁeld in the attach frame will be null.
+(2) At this point the link is reestablished with source=X, target=Y.
+In this case, the endpoint MUST send a detach frame to inform the remote peer that the handle is no longer attached to the link endpoint.
+If both endpoints do this, the link MAY return to a fully detached state.
+Note that in this case the link endpoints MAY still indirectly communicate via the session, as there could still be active deliveries on the link referenced via delivery-id.
+This can be used to update the properties of the link endpoints, or to update the properties of the termini.
+The link endpoint MUST then be destroyed.
+If any input (other than a detach) related to the endpoint either via the input handle or delivery-ids be received, the session MUST be terminated with an errant-link session-error.
+Since the link endpoint has been destroyed, the peer cannot reat- tach, and MUST resume the link in order to restore communication.
+In order to disambiguate the resume request from a pipelined re-attach the resuming attach performative MUST contain a non-null value for its unsettled ﬁeld.
+Receipt of a pipelined attach MUST result in the session being terminated with an errant-link session-error.
+2.6.6 Closing A Link A peer closes a link by sending the detach frame with the handle for the speciﬁed link, and the closed ﬂag set to true.
+The partner will destroy the corresponding link endpoint, and reply with its own detach frame with the closed ﬂag set to true.
+In this case, the partner MUST signal that it has closed the link by reattaching and then sending a closing detach.
+2.6.7 Flow Control Once attached, a link is subject to ﬂow control of message transfers.
+Link endpoints maintain the following ﬂow control state.
+This state deﬁnes when it is legal to send transfers on an attached link, as well as indicating when certain interesting conditions occur, such as insufﬁcient messages to consume the currently available link-credit, or insufﬁcient link-credit to send available messages: delivery-count The delivery-count is initialized by the sender when a link endpoint is created, and is incre- mented whenever a message is sent.
+Only the sender MAY independently modify this ﬁeld.
+The receiver’s value is calculated based on the last known value from the sender and any subsequent messages received on the link.
+Note that, despite its name, the delivery-count is not a count but a sequence number initialized at an arbitrary point by the sender.
+link-credit The link-credit variable deﬁnes the current maximum legal amount that the delivery-count can be increased by.
+This identiﬁes a delivery-limit that can be computed by adding the link-credit to the delivery-count.
+Only the receiver can independently choose a value for this ﬁeld.
+The sender’s value MUST always be maintained in such a way as to match the delivery-limit identiﬁed by the receiver.
+This means that the sender’s link-credit variable MUST be set according to this formula when ﬂow information is given by the receiver: link-creditsnd := delivery-countrcv + link-creditrcv - delivery-countsnd.
+In the event that the receiver does not yet know the delivery-count, i.e., delivery-countrcv is unspeciﬁed, the sender MUST assume that the delivery-countrcv is the ﬁrst delivery- count sent from sender to receiver, i.e., the delivery-count speciﬁed in the ﬂow state snd snd carried by the initial attach frame from the sender to the receiver.
+Additionally, whenever the sender increases delivery-count, it MUST decrease link-credit by the same amount in order to maintain the delivery-limit identiﬁed by the receiver.
+available The available variable is controlled by the sender, and indicates to the receiver, that the sender could make use of the indicated amount of link-credit.
+Only the sender can indepen- dently modify this ﬁeld.
+The receiver’s value is calculated based on the last known value from the sender and any subsequent incoming messages received.
+The sender MAY trans- fer messages even if the available variable is zero.
+If this happens, the receiver MUST maintain a ﬂoor of zero in its calculation of the value of available.
+drain The drain ﬂag indicates how the sender SHOULD behave when insufﬁcient messages are available to consume the current link-credit.
+If set, the sender will (after sending all available messages) advance the delivery-count as much as possible, consuming all link-credit, and send the ﬂow state to the receiver.
+Only the receiver can independently modify this ﬁeld.
+The sender’s value is always the last known value indicated by the receiver.
+If the link-credit is less than or equal to zero, i.e., the delivery-count is the same as or greater than the delivery-limit, a sender MUST NOT send more messages.
+If the link-credit is reduced by the receiver when transfers are in-ﬂight, the receiver MAY either handle the excess messages normally or detach the link with a transfer-limit-exceeded error code.
+The delivery-count is an absolute value.
+While the value itself is conceptually unbounded, it is encoded as a 32-bit integer that wraps around and compares according to RFC-1982 [RFC1982] serial number arithmetic.
+The initial ﬂow state of a link endpoint is determined as follows.
+The link-credit and available variables are initialized to zero.
+The drain ﬂag is initialized to false.
+The sender MAY choose an arbitrary point to initialize the delivery- count.
+This value is communicated in the initial attach frame.
+The receiver initializes its delivery-count upon receiving the sender’s attach.
+flow state | modifies | Sender | .----------------------.
+Additionally, by manipulating the link-credit and drain ﬂag, a receiver can provide a variety of different higher level behaviors often useful to applications, including synchronous blocking fetch, synchronous fetch with a timeout, asynchronous notiﬁcations, and stopping/pausing.
+When the desired time has elapsed the receiver then sets the drain ﬂag and sends the newly updated flow state again, while continuing to wait for the link-credit to be consumed.
+Even if no messages are available, this condition will be met promptly because of the drain ﬂag.
+Once the link- credit is consumed, the receiver can unambiguously determine whether a message has arrived or whether the operation has timed out.
+(2) If a message is not available within the timeout, the drain flag will ensure that the sender promptly advances the delivery-count until link-credit is consumed.
+The receiver maintains a target amount of link-credit for that link.
+As transfer arrive on the link, the sender’s link-credit decreases as the delivery-count increases.
+When the sender’s link-credit falls below a threshold, the flow state MAY be sent to increase the sender’s link- credit back to the desired target amount.
+It is possible that some transfers could be in ﬂight at the time the flow state is sent, so incoming transfers could still arrive on the link.
+The echo ﬁeld of the flow frame MAY be used to request the sender’s flow state be echoed back.
+This MAY be used to determine when the link has ﬁnally quiesced.
+(2) At this point no further transfers will arrive.
+Message data is carried as the payload in frames containing the transfer performative.
+Messages can be fragmented across several transfer frames as indicated by the more ﬂag of the transfer performative.
+2.6.12 Transferring A Message When an application initiates a message transfer, it assigns a delivery-tag used to track the state of the delivery while the message is in transit.
+A delivery is considered unsettled at the sender/receiver from the point at which it was sent/received until it has been settled by the sending/receiving application.
+Each delivery MUST be identiﬁed by a delivery-tag chosen by the sending application.
+The delivery-tag MUST be unique amongst all deliveries that could be considered unsettled by either end of the link.
+Upon initiating a transfer, the application will supply the sending link endpoint (Sender) with the message data and its associated delivery-tag.
+The sender will create an entry in its unsettled map, and send a transfer frame that includes the delivery-tag, the delivery’s initial state, and its associated message data.
+For brevity on the wire, the delivery-tag is also associated with a delivery-id assigned by the session.
+The delivery-id is then used to refer to the delivery-tag in all subsequent interactions on that session.
+The following diagrams illustrate the fundamentals involved in transferring a message.
+For normative semantics please refer to the deﬁnitions of the transfer and disposition performatives.
+For simplicity the delivery-id is omitted in the following diagrams and the delivery-tag is itself used directly.
+These diagrams also assume that this interaction takes place in the context of a single established link, and as such omit other details that would be present on the wire in practice such as the channel number, link handle, fragmentation ﬂags, etc., focusing only on the essential aspects of message transfer.
+Applications MAY wish to classify delivery states as terminal or non-terminal depending on whether an endpoint will ever update the state further once it has been reached.
+In some cases (e.g., large messages or transactions), the receiving application MAY wish to indicate non-terminal delivery states to the sender.
+This is done via the disposition frame.
+This state is communicated back to the sender via the disposition frame.
+The sender will then send its ﬁnal delivery state along with an indication that the delivery is settled at the sender.
+Note that this amounts to the sender announcing that it is forever forgetting everything about the delivery-tag in question, and as such it is only possible to make such an announcement once, since after the sender forgets, it has no way of remembering to make the announcement again.
+If this frame gets lost due to an interruption in communication, the receiver will ﬁnd out that the sender has settled the delivery upon link recovery.
+When the sender re-attaches the receiver will examine the unsettled state of the sender (i.e., what has not been forgotten) and from this can derive that the delivery in question has been settled (since its tag will not be in the unsettled state).
+The receiver will then remove the delivery-tag from its unsettled map.
+Note that because the receiver knows that the delivery is already settled at the sender, it makes no effort to notify the other endpoint that it is settling the delivery.
+In this case the sender SHOULD send a disposition to the receiver, but not settle until the receiver conﬁrms, via a disposition in the opposite direction, that it has updated the state at its endpoint.
+This set of exchanges illustrates the basic principals of message transfer.
+While a delivery is unsettled the end- points exchange the current state of the delivery.
+Eventually both endpoints reach a terminal state as indicated by the application.
+This triggers the other application to take some ﬁnal action and settle the delivery, and once one endpoint settles, this usually triggers the application at the other endpoint to settle.
+This basic pattern can be modiﬁed in a variety of ways to achieve different guarantees.
+For example if the sending application settles the delivery before sending it, this results in an at-most-once guarantee.
+The sender has indicated up front with his initial transmission that he has forgotten everything about this delivery and will therefore make no further attempts to send it.
+If this delivery makes it to the receiver, the receiver clearly has no obligation to respond with updates of the receiver’s delivery state, as they would be meaningless and ignored by the sender.
+If the disposition frame indicated below is lost, then upon link recovery the sender will not see the delivery-tag in the receiver’s unsettled map and will therefore assume the delivery was lost and resend it, resulting in duplicate processing of the message at the receiver.
+More generally if the receiver settles prior to the sender, it is possible for duplicate messages to occur, except in the case where the sender settles before the initial transmission.
+Similarly, if the sender settles before the receiver reaches a terminal state, it is possible for messages to be lost.
+The sender and receiver policy regarding settling can either be preconﬁgured for the entire link, thereby allowing for optimized endpoint choices, or can be determined on an ad-hoc basis for each delivery.
+An application MAY also choose to settle at an endpoint independently of its delivery state, for example the sending application MAY choose to settle a delivery due to the message ttl expiring regardless of whether the receiver has reached a terminal state.
+2.6.13 Resuming Deliveries When a suspended link having unsettled deliveries is resumed, the unsettled ﬁeld from the attach frame will carry the delivery-tags and delivery state of all deliveries considered unsettled by the issuing link endpoint.
+The set of delivery tags and delivery states contained in the unsettled maps from both endpoints can be divided into three categories: Deliveries that only the source considers unsettled Deliveries in this category MAY be resumed at the discretion of the sending application.
+If the sending application marks the resend attempt as a resumed delivery then it MUST be ignored by the receiver.
+(This allows the sender to pipeline resumes without risk of duplication at the sender).
+Deliveries that only the target considers unsettled Deliveries in this category MUST be ignored by the sender, and MUST be considered settled by the receiver.
+Deliveries that both the source and target consider unsettled Deliveries in this category MUST be resumed by the sender.
+Note that in the case where an endpoint indicates that the unsettled map is incomplete, the absence of an entry in the unsettled map is not an indication of settlement.
+In this case the two endpoints MUST reduce the levels of unsettled state as much as they can by the sender resuming and/or settling transfers that it observes that the receiver considers unsettled.
+Upon completion of this reduction of state, the two parties MUST suspend and re-attempt to resume the link.
+Only when both sides have complete unsettled maps can new unsettled state be created by the sending of non-resuming transfers.
+A delivery is resumed much the same way it is initially transferred with the following exceptions: • The resume ﬂag of the transfer frame MUST be set to true when resuming a delivery.
+• The sender MAY omit message data when the delivery state of the receiver indicates retransmission is unnecessary.
+Note that unsettled delivery-tags do NOT have any valid delivery-ids associated until they are resumed, as the delivery-ids from their original link endpoints are meaningless to the new link endpoints.
+2.6.14 Transferring Large Messages Each transfer frame can carry an arbitrary amount of message data up to the limit imposed by the maximum frame size.
+For messages that are too large to ﬁt within the maximum frame size, additional data MAY be trans- ferred in additional transfer frames by setting the more ﬂag on all but the last transfer frame.
+When a message is split up into multiple transfer frames in this manner, messages being transferred along different links MAY be interleaved.
+However, messages transferred along a single link MUST NOT be interleaved.
+The sender MAY indicate an aborted attempt to deliver a message by setting the abort ﬂag on the last transfer.
+In this case the receiver MUST discard the message data that was transferred prior to the abort.
+Note that the con- nection header which is sent ﬁrst on the connection is not a frame.
+The ﬁelds indicate the capabilities and limitations of the sending peer.
+Field Details container-id the id of the source container hostname the name of the target host The name of the host (either fully qualiﬁed or relative) to which the sending peer is connecting.
+It is not mandatory to provide the hostname.
+If no hostname is provided the receiving peer SHOULD select a default based on its own conﬁguration.
+This ﬁeld can be used by AMQP proxies to determine the correct back-end service to connect the client to.
+This ﬁeld MAY already have been speciﬁed by the sasl-init frame, if a SASL layer is used, or, the server name indication extension as described in RFC-4366, if a TLS layer is used, in which case this ﬁeld SHOULD be null or contain the same value.
+It is undeﬁned what a different value to that already speciﬁed means.
+max-frame-size proposed maximum frame size The largest frame size that the sending peer is able to accept on this connection.
+If this ﬁeld is not set it means that the peer does not impose any speciﬁc limit.
+A peer MUST NOT send frames larger than its partner can handle.
+A peer that receives an oversized frame MUST close the connection with the framing-error error-code.
+Both peers MUST accept frames of up to 512 (MIN-MAX-FRAME-SIZE) octets.
+channel-max the maximum channel number that can be used on the connection The channel-max value is the highest channel number that can be used on the connection.
+This value plus one is the maximum number of sessions that can be simultaneously active on the connection.
+A peer MUST not use channel numbers outside the range that its partner can handle.
+A peer that receives a channel number outside the supported range MUST close the connection with the framing-error error-code.
+idle-time-out idle time-out The idle timeout REQUIRED by the sender (see subsection 2.4.5).
+A value of zero is the same as if it was not set (null).
+If the receiver is unable or unwilling to support the idle time-out then it SHOULD close the connection with an error explaining why (e.g., because it is too small).
+If the value is not set, then the sender does not have an idle time-out.
+However, senders doing this SHOULD be aware that implementations MAY choose to use an internal default to efﬁciently manage a peer’s resources.
+outgoing-locales locales available for outgoing text A list of the locales that the peer supports for sending informational text.
+This includes connection, session and link error descriptions.
+A peer MUST support at least the en-US locale (see subsec- tion 2.8.12 IETF Language Tag).
+Since this value is always supported, it need not be supplied in the outgoing-locales.
+A null value or an empty list implies that only en-US is supported.
+incoming-locales desired locales for incoming text in decreasing level of preference A list of locales that the sending peer permits for incoming informational text.
+This list is ordered in decreasing level of preference.
+The receiving partner will choose the ﬁrst (most preferred) incoming locale from those which it supports.
+If none of the requested locales are supported, en- US will be chosen.
+Note that en-US need not be supplied in this list as it is always the fallback.
+A peer MAY determine which of the permitted incoming locales is chosen by examining the partner’s supported locales as speciﬁed in the outgoing-locales ﬁeld.
+A null value or an empty list implies that only en-US is supported.
+offered-capabilities extension capabilities the sender supports If the receiver of the offered-capabilities requires an extension capability which is not present in the offered-capability list then it MUST close the connection.
+A registry of commonly deﬁned connection capabilities and their meanings is maintained [AMQP- CONNCAP].
+desired-capabilities extension capabilities the sender can use if the receiver supports them The desired-capability list deﬁnes which extension capabilities the sender MAY use if the receiver offers them (i.e., they are in the offered-capabilities list received by the sender of the desired- capabilities).
+The sender MUST NOT attempt to use any capabilities it did not declare in the desired-capabilities ﬁeld.
+If the receiver of the desired-capabilities offers extension capabilities which are not present in the desired-capabilities list it received, then it can be sure those (unde- sired) capabilities will not be used on the connection.
+properties connection properties The properties map contains a set of ﬁelds intended to indicate information about the connection and its container.
+A registry of commonly deﬁned connection properties and their meanings is maintained [AMQP- CONNPROP].
+2.7.2 Begin Begin a session on a channel.
+Field Details remote-channel the remote channel for this session If a session is locally initiated, the remote-channel MUST NOT be set.
+When an endpoint responds to a remotely initiated session, the remote-channel MUST be set to the channel on which the remote session sent the begin.
+next-outgoing-id the transfer-id of the ﬁrst transfer id the sender will send See subsection 2.5.6. incoming-window the initial incoming-window of the sender See subsection 2.5.6. outgoing-window the initial outgoing-window of the sender See subsection 2.5.6. handle-max the maximum handle value that can be used on the session The handle-max value is the highest handle value that can be used on the session.
+A peer MUST NOT attempt to attach a link using a handle value outside the range that its partner can handle.
+A peer that receives a handle outside the supported range MUST close the connection with the framing-error error-code.
+offered-capabilities the extension capabilities the sender supports A registry of commonly deﬁned session capabilities and their meanings is maintained [AMQPSESSCAP].
+desired-capabilities the extension capabilities the sender can use if the receiver supports them The sender MUST NOT attempt to use any capability other than those it has declared in desired- capabilities ﬁeld.
+properties session properties The properties map contains a set of ﬁelds intended to indicate information about the session and its container.
+A registry of commonly deﬁned session properties and their meanings is maintained [AMQPSESSPROP].
+2.7.3 Attach Attach a link to a session.
+Field Details name the name of the link This name uniquely identiﬁes the link from the container of the source to the container of the target node, e.g., if the container of the source node is A, and the container of the target node is B, the link MAY be globally identiﬁed by the (ordered) tuple (A,B,<name>).
+handle the handle for the link while attached The numeric handle assigned by the the peer as a shorthand to refer to the link in all performatives that reference the link until the it is detached.
+See subsection 2.6.2.
+The handle MUST NOT be used for other open links.
+An attempt to attach using a handle which is already associated with a link MUST be responded to with an immediate close carrying a handle-in-use session-error.
+To make it easier to monitor AMQP link attach frames, it is RECOMMENDED that implementations always assign the lowest available handle to this ﬁeld.
+role role of the link endpoint The role being played by the peer, i.e., whether the peer is the sender or the receiver of messages on the link.
+snd-settle-mode settlement policy for the sender The delivery settlement policy for the sender.
+When set at the receiver this indicates the desired value for the settlement mode at the sender.
+When set at the sender this indicates the actual settlement mode in use.
+The sender SHOULD respect the receiver’s desired settlement mode if the receiver initiates the attach exchange and the sender supports the desired mode.
+rcv-settle-mode the settlement policy of the receiver The delivery settlement policy for the receiver.
+When set at the sender this indicates the desired value for the settlement mode at the receiver.
+When set at the receiver this indicates the actual settlement mode in use.
+The receiver SHOULD respect the sender’s desired settlement mode if the sender initiates the attach exchange and the receiver supports the desired mode.
+source the source for messages If no source is speciﬁed on an outgoing link, then there is no source currently attached to the link.
+A link with no source will never produce outgoing messages.
+target the target for messages If no target is speciﬁed on an incoming link, then there is no target currently attached to the link.
+A link with no target will never permit incoming messages.
+unsettled unsettled delivery state This is used to indicate any unsettled delivery states when a suspended link is resumed.
+The map is keyed by delivery-tag with values indicating the delivery state.
+The local and remote delivery states for a given delivery-tag MUST be compared to resolve any in-doubt deliveries.
+If necessary, deliveries MAY be resent, or resumed based on the outcome of this comparison.
+See subsection 2.6.13.
+If the local unsettled map is too large to be encoded within a frame of the agreed maximum frame size then the session MAY be ended with the frame-size-too-small error.
+The endpoint SHOULD make use of the ability to send an incomplete unsettled map (see below) to avoid send- ing an error.
+The unsettled map MUST NOT contain null valued keys.
+When reattaching (as opposed to resuming), the unsettled map MUST be null.
+incomplete-unsettled If set to true this ﬁeld indicates that the unsettled map provided is not complete.
+When the map is incomplete the recipient of the map cannot take the absence of a delivery tag from the map as evidence of settlement.
+On receipt of an incomplete unsettled map a sending endpoint MUST NOT send any new deliveries (i.e.
+deliveries where resume is not set to true) to its partner (and a receiving endpoint which sent an incomplete unsettled map MUST detach with an error on receiving a transfer which does not have the resume ﬂag set to true).
+Note that if this ﬂag is set to true then the endpoints MUST detach and reattach at least once in order to send new deliveries.
+This ﬂag can be useful when there are too many entries in the unsettled map to ﬁt within a single frame.
+An endpoint can attach, resume, settle, and detach until enough unsettled state has been cleared for an attach where this ﬂag is set to false.
+initial-delivery-count the sender’s initial value for delivery-count This MUST NOT be null if role is sender, and it is ignored if the role is receiver.
+See subsec- tion 2.6.7. max-message-size the maximum message size supported by the link endpoint This ﬁeld indicates the maximum message size supported by the link endpoint.
+Any attempt to deliver a message larger than this results in a message-size-exceeded link-error.
+If this ﬁeld is zero or unset, there is no maximum size imposed by the link endpoint.
+offered-capabilities the extension capabilities the sender supports A registry of commonly deﬁned link capabilities and their meanings is maintained [AMQ- PLINKCAP].
+desired-capabilities the extension capabilities the sender can use if the receiver supports them The sender MUST NOT attempt to use any capability other than those it has declared in desired- capabilities ﬁeld.
+properties link properties The properties map contains a set of ﬁelds intended to indicate information about the link and its container.
+A registry of commonly deﬁned link properties and their meanings is maintained [AMQ- PLINKPROP].
+2.7.4 Flow Update link state.
+Field Details next-incoming-id Identiﬁes the expected transfer-id of the next incoming transfer frame.
+This value MUST be set if the peer has received the begin frame for the session, and MUST NOT be set if it has not.
+See subsection 2.5.6 for more details.
+incoming-window Deﬁnes the maximum number of incoming transfer frames that the endpoint can currently re- ceive.
+See subsection 2.5.6 for more details.
+next-outgoing-id The transfer-id that will be assigned to the next outgoing transfer frame.
+See subsection 2.5.6 for more details.
+outgoing-window Deﬁnes the maximum number of outgoing transfer frames that the endpoint could potentially currently send, if it was not constrained by restrictions imposed by its peer’s incoming-window.
+See subsection 2.5.6 for more details.
+handle If set, indicates that the ﬂow frame carries ﬂow state information for the local link endpoint associ- ated with the given handle.
+If not set, the ﬂow frame is carrying only information pertaining to the session endpoint.
+If set to a handle that is not currently associated with an attached link, the recipient MUST respond by ending the session with an unattached-handle session error.
+delivery-count the endpoint’s value for the delivery-count sequence number See subsection 2.6.7 for the deﬁnition of delivery-count.
+When the handle ﬁeld is not set, this ﬁeld MUST NOT be set.
+When the handle identiﬁes that the ﬂow state is being sent from the sender link endpoint to receiver link endpoint this ﬁeld MUST be set to the current delivery-count of the link endpoint.
+When the ﬂow state is being sent from the receiver endpoint to the sender endpoint this ﬁeld MUST be set to the last known value of the corresponding sending endpoint.
+In the event that the receiving link endpoint has not yet seen the initial attach frame from the sender this ﬁeld MUST NOT be set.
+link-credit the current maximum number of messages that can be received The current maximum number of messages that can be handled at the receiver endpoint of the link.
+Only the receiver endpoint can independently set this value.
+The sender endpoint sets this to the last known value seen from the receiver.
+See subsection 2.6.7 for more details.
+When the handle ﬁeld is not set, this ﬁeld MUST NOT be set.
+available the number of available messages The number of messages awaiting credit at the link sender endpoint.
+Only the sender can inde- pendently set this value.
+The receiver sets this to the last known value seen from the sender.
+See subsection 2.6.7 for more details.
+When the handle ﬁeld is not set, this ﬁeld MUST NOT be set.
+drain indicates drain mode When ﬂow state is sent from the sender to the receiver, this ﬁeld contains the actual drain mode of the sender.
+When ﬂow state is sent from the receiver to the sender, this ﬁeld contains the desired drain mode of the receiver.
+See subsection 2.6.7 for more details.
+When the handle ﬁeld is not set, this ﬁeld MUST NOT be set.
+echo request state from partner If set to true then the receiver SHOULD send its state at the earliest convenient opportunity.
+If set to true, and the handle ﬁeld is not set, then the sender only requires session endpoint state to be echoed, however, the receiver MAY fulﬁl this requirement by sending a ﬂow performative carrying link-speciﬁc state (since any such ﬂow also carries session state).
+If a sender makes multiple requests for the same state before the receiver can reply, the receiver MAY send only one ﬂow in return.
+Note that if a peer responds to echo requests with ﬂows which themselves have the echo ﬁeld set to true, an inﬁnite loop could result if its partner adopts the same policy (therefore such a policy SHOULD be avoided).
+properties link state properties A registry of commonly deﬁned link state properties and their meanings is maintained [AMQ- PLINKSTATEPROP].
+When the handle ﬁeld is not set, this ﬁeld MUST NOT be set.
+2.7.5 Transfer Transfer a message.
+Messages MAY be carried by a single transfer up to the maximum negotiated frame size for the connection.
+Larger messages MAY be split across several transfer frames.
+Field Details handle Speciﬁes the link on which the message is transferred.
+delivery-id alias for delivery-tag The delivery-id MUST be supplied on the ﬁrst transfer of a multi-transfer delivery.
+On continuation transfers the delivery-id MAY be omitted.
+It is an error if the delivery-id on a continuation transfer differs from the delivery-id on the ﬁrst transfer of a delivery.
+delivery-tag Uniquely identiﬁes the delivery attempt for a given message on this link.
+This ﬁeld MUST be speciﬁed for the ﬁrst transfer of a multi-transfer message and can only be omitted for continuation transfers.
+It is an error if the delivery-tag on a continuation transfer differs from the delivery-tag on the ﬁrst transfer of a delivery.
+message-format indicates the message format This ﬁeld MUST be speciﬁed for the ﬁrst transfer of a multi-transfer message and can only be omitted for continuation transfers.
+It is an error if the message-format on a continuation transfer differs from the message-format on the ﬁrst transfer of a delivery.
+settled If not set on the ﬁrst (or only) transfer for a (multi-transfer) delivery, then the settled ﬂag MUST be interpreted as being false.
+For subsequent transfers in a multi-transfer delivery if the settled ﬂag is left unset then it MUST be interpreted as true if and only if the value of the settled ﬂag on any of the preceding transfers was true; if no preceding transfer was sent with settled being true then the value when unset MUST be taken as false.
+If the negotiated value for snd-settle-mode at attachment is settled, then this ﬁeld MUST be true on at least one transfer frame for a delivery (i.e., the delivery MUST be settled at the sender at the point the delivery has been completely transferred).
+If the negotiated value for snd-settle-mode at attachment is unsettled, then this ﬁeld MUST be false (or unset) on every transfer frame for a delivery (unless the delivery is aborted).
+more indicates that the message has more content Note that if both the more and aborted ﬁelds are set to true, the aborted ﬂag takes precedence.
+That is, a receiver SHOULD ignore the value of the more ﬁeld if the transfer is marked as aborted.
+A sender SHOULD NOT set the more ﬂag to true if it also sets the aborted ﬂag to true.
+rcv-settle-mode If first, this indicates that the receiver MUST settle the delivery once it has arrived without waiting for the sender to settle ﬁrst.
+If second, this indicates that the receiver MUST NOT settle until sending its disposition to the sender and receiving a settled disposition from the sender.
+If not set, this value is defaulted to the value negotiated on link attach.
+If the negotiated link value is first, then it is illegal to set this ﬁeld to second.
+If the message is being sent settled by the sender, the value of this ﬁeld is ignored.
+The (implicit or explicit) value of this ﬁeld does not form part of the transfer state, and is not retained if a link is suspended and subsequently resumed.
+state the state of the delivery at the sender When set this informs the receiver of the state of the delivery at the sender.
+This is particularly useful when transfers of unsettled deliveries are resumed after resuming a link.
+Setting the state on the transfer can be thought of as being equivalent to sending a disposition immediately before the transfer performative, i.e., it is the state of the delivery (not the transfer) that existed at the point the frame was sent.
+Note that if the transfer performative (or an earlier disposition performative referring to the delivery) indicates that the delivery has attained a terminal state, then no future transfer or disposition sent by the sender can alter that terminal state.
+resume indicates a resumed delivery If true, the resume ﬂag indicates that the transfer is being used to reassociate an unsettled delivery from a dissociated link endpoint.
+See subsection 2.6.13 for more details.
+The receiver MUST ignore resumed deliveries that are not in its local unsettled map.
+The sender MUST NOT send resumed transfers for deliveries not in its local unsettled map.
+If a resumed delivery spans more than one transfer performative, then the resume ﬂag MUST be set to true on the ﬁrst transfer of the resumed delivery.
+For subsequent transfers for the same delivery the resume ﬂag MAY be set to true, or MAY be omitted.
+In the case where the exchange of unsettled maps makes clear that all message data has been successfully transferred to the receiver, and that only the ﬁnal state (and potentially settlement) at the sender needs to be conveyed, then a resumed delivery MAY carry no payload and instead act solely as a vehicle for carrying the terminal state of the delivery at the sender.
+aborted indicates that the message is aborted Aborted messages SHOULD be discarded by the recipient (any payload within the frame carrying the performative MUST be ignored).
+An aborted message is implicitly settled.
+batchable batchable hint If true, then the issuer is hinting that there is no need for the peer to urgently communicate updated delivery state.
+This hint MAY be used to artiﬁcially increase the amount of batching an implementation uses when communicating delivery states, and thereby save bandwidth.
+If the message being delivered is too large to ﬁt within a single frame, then the setting of batchable to true on any of the transfer performatives for the delivery is equivalent to setting batchable to true for all the transfer performatives for the delivery.
+The batchable value does not form part of the transfer state, and is not retained if a link is sus- pended and subsequently resumed.
+2.7.6 Disposition Inform remote peer of delivery state changes.
+The disposition frame MAY reference deliveries from many different links associated with a session, although all links MUST have the directionality indicated by the speciﬁed role.
+Note that it is possible for a disposition sent from sender to receiver to refer to a delivery which has not yet completed (i.e., a delivery which is spread over multiple frames and not all frames have yet been sent).
+The use of such interleaving is discouraged in favor of carrying the modiﬁed state on the next transfer performative for the delivery.
+The disposition performative MAY refer to deliveries on links that are no longer attached.
+As long as the links have not been closed or detached with an error then the deliveries are still “live” and the updated state MUST be applied.
+Field Details role directionality of disposition The role identiﬁes whether the disposition frame contains information about sending link endpoints or receiving link endpoints.
+first lower bound of deliveries Identiﬁes the lower bound of delivery-ids for the deliveries in this set.
+last upper bound of deliveries Identiﬁes the upper bound of delivery-ids for the deliveries in this set.
+If not set, this is taken to be the same as ﬁrst.
+settled indicates deliveries are settled If true, indicates that the referenced deliveries are considered settled by the issuing endpoint.
+state indicates state of deliveries Communicates the state of all the deliveries referenced by this disposition.
+batchable batchable hint If true, then the issuer is hinting that there is no need for the peer to urgently communicate the impact of the updated delivery states.
+This hint MAY be used to artiﬁcially increase the amount of batching an implementation uses when communicating delivery states, and thereby save band- width.
+2.7.7 Detach Detach the link endpoint from the session.
+This unmaps the handle and makes it available for use by other links.
+Field Details handle the local handle of the link to be detached closed if true then the sender has closed the link See subsection 2.6.6. error error causing the detach If set, this ﬁeld indicates that the link is being detached due to an error condition.
+The value of the ﬁeld SHOULD contain details on the cause of the error.
+2.7.8 End End the session.
+Field Details error error causing the end If set, this ﬁeld indicates that the session is being ended due to an error condition.
+The value of the ﬁeld SHOULD contain details on the cause of the error.
+2.7.9 Close Signal a connection close.
+Orderly shutdown requires that this frame MUST be written by the sender.
+It is illegal to send any more frames (or bytes of any other kind) after sending a close frame.
+Field Details error error causing the close If set, this ﬁeld indicates that the connection is being closed due to an error condition.
+The value of the ﬁeld SHOULD contain details on the cause of the error.
+2.8 Deﬁnitions 2.8.1 Role Link endpoint role.
+<choice name="sender" value="false"/> <choice name="receiver" value="true"/> </type> Valid Values false sender true receiver 2.8.2 Sender Settle Mode Settlement policy for a sender.
+<choice name="unsettled" value="0"/> <choice name="settled" value="1"/> <choice name="mixed" value="2"/> </type> Valid Values The sender will send all deliveries initially unsettled to the receiver.
+The sender will send all deliveries settled to the receiver.
+The sender MAY send a mixture of settled and unsettled deliveries to the receiver.
+2.8.3 Receiver Settle Mode Settlement policy for a receiver.
+<choice name="first" value="0"/> <choice name="second" value="1"/> </type> Valid Values The receiver will spontaneously settle all incoming transfers.
+The receiver will only settle after sending the disposition to the sender and receiving a disposition indicating settlement of the delivery from the sender.
+2.8.4 Handle The handle of a link.
+An alias established by the attach frame and subsequently used by endpoints as a shorthand to refer to the link in all outgoing frames.
+The two endpoints MAY potentially use different handles to refer to the same link.
+Link handles MAY be reused once a link is closed for both send and receive.
+2.8.5 Seconds A duration measured in seconds.
+2.8.6 Milliseconds A duration measured in milliseconds.
+2.8.7 Delivery Tag A delivery-tag can be up to 32 octets of binary data.
+2.8.8 Delivery Number 2.8.9 Transfer Number 2.8.10 Sequence No 32-bit RFC-1982 serial number.
+A sequence-no encodes a serial number as deﬁned in RFC-1982 [RFC1982].
+The arithmetic and operators for these numbers are deﬁned by RFC-1982.
+2.8.11 Message Format 32-bit message format code.
+The upper three octets of a message format code identify a particular message format.
+The lowest octet indicates the version of said message format.
+Any given version of a format is forwards compatible with all higher versions.
+IETF language tags are abbreviated language codes as deﬁned in the IETF Best Current Practice BCP-47 [BCP47] (incorporating IETF RFC-5646 [RFC5646]).
+A list of registered subtags is maintained in the IANA Lan- guage Subtag Registry [IANASUBTAG].
+All AMQP implementations SHOULD understand at the least the IETF language tag en-US (note that this uses a hyphen separator, not an underscore).
+2.8.13 Fields A mapping from ﬁeld name to value.
+The ﬁelds type is a map where the keys are restricted to be of type symbol (this excludes the possibility of a null key).
+There is no further restriction implied by the ﬁelds type on the allowed values for the entries or the set of allowed keys.
+2.8.14 Error Details of an error.
+description descriptive text about the error condition This text supplies any supplementary details not indicated by the condition ﬁeld.
+This text can be logged as an aid to resolving issues.
+info map carrying information about the error condition 2.8.15 AMQP Error Shared error conditions.
+<choice name="internal-error" value="amqp:internal-error"/> <choice name="not-found" value="amqp:not-found"/> <choice name="unauthorized-access" value="amqp:unauthorized-access"/> <choice name="decode-error" value="amqp:decode-error"/> <choice name="resource-limit-exceeded" value="amqp:resource-limit-exceeded"/> <choice name="not-allowed" value="amqp:not-allowed"/> <choice name="invalid-field" value="amqp:invalid-field"/> <choice name="not-implemented" value="amqp:not-implemented"/> <choice name="resource-locked" value="amqp:resource-locked"/> <choice name="precondition-failed" value="amqp:precondition-failed"/> <choice name="resource-deleted" value="amqp:resource-deleted"/> <choice name="illegal-state" value="amqp:illegal-state"/> <choice name="frame-size-too-small" value="amqp:frame-size-too-small"/> </type> Valid Values amqp:internal-error An internal error occurred.
+Operator intervention might be necessary to resume normal operation.
+amqp:not-found A peer attempted to work with a remote entity that does not exist.
+amqp:unauthorized-access A peer attempted to work with a remote entity to which it has no access due to security settings.
+amqp:decode-error Data could not be decoded.
+amqp:resource-limit-exceeded A peer exceeded its resource allocation.
+amqp:not-allowed The peer tried to use a frame in a manner that is inconsistent with the semantics deﬁned in the speciﬁcation.
+amqp:invalid-ﬁeld An invalid ﬁeld was passed in a frame body, and the operation could not proceed.
+amqp:not-implemented The peer tried to use functionality that is not implemented in its partner.
+amqp:resource-locked The client attempted to work with a server entity to which it has no access because another client is working with it.
+amqp:precondition-failed The client made a request that was not allowed because some precondition failed.
+amqp:resource-deleted A server entity the client is working with has been deleted.
+amqp:illegal-state The peer sent a frame that is not permitted in the current state.
+amqp:frame-size-too-small The peer cannot send a frame because the smallest encoding of the performative with the currently valid values would be too large to ﬁt within a frame of the agreed maximum frame size.
+When transferring a message the message data can be sent in multiple transfer frames thereby avoiding this error.
+Similarly when attaching a link with a large unsettled map the endpoint MAY make use of the incomplete-unsettled ﬂag to avoid the need for overly large frames.
+2.8.16 Connection Error Symbols used to indicate connection error conditions.
+<choice name="connection-forced" value="amqp:connection:forced"/> <choice name="framing-error" value="amqp:connection:framing-error"/> <choice name="redirect" value="amqp:connection:redirect"/> </type> Valid Values amqp:connection:forced An operator intervened to close the connection for some reason.
+The client could retry at some later date.
+amqp:connection:framing-error A valid frame header cannot be formed from the incoming byte stream.
+amqp:connection:redirect The container is no longer available on the current connection.
+The peer SHOULD attempt reconnection to the container using the details provided in the info map.
+hostname the hostname of the container.
+This is the value that SHOULD be supplied in the hostname ﬁeld of the open frame, and during the SASL and TLS negotiation (if used).
+network-host the DNS hostname or IP address of the machine hosting the con- tainer.
+port the port number on the machine hosting the container.
+2.8.17 Session Error Symbols used to indicate session error conditions.
+<choice name="window-violation" value="amqp:session:window-violation"/> <choice name="errant-link" value="amqp:session:errant-link"/> <choice name="handle-in-use" value="amqp:session:handle-in-use"/> <choice name="unattached-handle" value="amqp:session:unattached-handle"/> </type> Valid Values amqp:session:window-violation The peer violated incoming window for the session.
+amqp:session:errant-link Input was received for a link that was detached with an error.
+amqp:session:handle-in-use An attach was received using a handle that is already in use for an attached link.
+amqp:session:unattached-handle A frame (other than attach) was received referencing a handle which is not currently in use of an attached link.
+2.8.18 Link Error Symbols used to indicate link error conditions.
+<choice name="detach-forced" value="amqp:link:detach-forced"/> <choice name="transfer-limit-exceeded" value="amqp:link:transfer-limit-exceeded"/> <choice name="message-size-exceeded" value="amqp:link:message-size-exceeded"/> <choice name="redirect" value="amqp:link:redirect"/> <choice name="stolen" value="amqp:link:stolen"/> </type> Valid Values amqp:link:detach-forced An operator intervened to detach for some reason.
+amqp:link:transfer-limit-exceeded The peer sent more message transfers than currently allowed on the link.
+amqp:link:message-size-exceeded The peer sent a larger message than is supported on the link.
+amqp:link:redirect The address provided cannot be resolved to a terminus at the current container.
+The info map MAY contain the following information to allow the client to locate the attach to the terminus.
+hostname the hostname of the container hosting the terminus.
+This is the value that SHOULD be supplied in the hostname ﬁeld of the open frame, and during SASL and TLS negotiation (if used).
+network-host the DNS hostname or IP address of the machine hosting the con- tainer.
+port the port number on the machine hosting the container.
+address the address of the terminus at the container.
+amqp:link:stolen The link has been attached elsewhere, causing the existing attachment to be forcibly closed.
+2.8.19 Constant Deﬁnitions PORT 5672 the IANA assigned port number for AMQP.
+The standard AMQP port number that has been assigned by IANA for TCP, UDP, and SCTP.
+There are currently no UDP or SCTP mappings deﬁned for AMQP.
+The port number is reserved for future transport mappings to these protocols.
+SECURE-PORT 5671 the IANA assigned port number for secure AMQP (amqps).
+The standard AMQP port number that has been assigned by IANA for secure TCP using TLS.
+Implementations listening on this port SHOULD NOT ex- pect a protocol handshake before TLS is negotiated.
+MAJOR 1 major protocol version.
+MINOR 0 minor protocol version.
+REVISION 0 protocol revision.
+MIN-MAX-FRAME-SIZE 512 the lower bound for the agreed maximum frame size (in bytes).
+During the initial connection negotiation, the two peers MUST agree upon a maximum frame size.
+This constant deﬁnes the minimum value to which the maximum frame size can be set.
+By deﬁning this value, the peers can guar- antee that they can send frames of up to this size until they have agreed a deﬁnitive maximum frame size for that con- nection.
+Part 3: Messaging 3.1 Introduction The messaging layer builds on top of the concepts described in Part 1 and Part 2.
+The transport layer deﬁnes a number of extension points suitable for use in a variety of different messaging applications.
+The messaging layer speciﬁes a standardized use of these to provide interoperable messaging capabilities.
+This standard covers: • message format – properties for the bare message – formats for structured and unstructured sections in the bare message – headers and footers for the annotated message • delivery states for messages traveling between nodes • states for messages stored at a distribution node • sources and targets – default disposition of transfers – supported outcomes – ﬁltering of messages from a node – distribution-mode for access to messages stored at a distribution node – on-demand node creation 3.2 Message Format The term message is used with various connotations in the messaging world.
+The sender might like to think of the message as an immutable payload handed off to the messaging infrastructure for delivery.
+The receiver often thinks of the message as not only that immutable payload from the sender, but also various annotations supplied by the messaging infrastructure along the way.
+To avoid confusion we formally deﬁne the term bare message to mean the message as supplied by the sender and the term annotated message to mean the message as seen at the receiver.
+An annotated message consists of the bare message plus sections for annotation at the head and tail of the bare message.
+There are two classes of annotations: annotations that travel with the message indeﬁnitely, and annotations that are consumed by the next node.
+The bare message consists of three sections: standard properties, application-properties, and application-data (the body).
+Bare Message | header | delivery- | message- | properties | application- | application- | footer | | | annotations | annotations | | properties | data | | Annotated Message The bare message is immutable within the AMQP network.
+That is, none of the sections can be changed by any node acting as an AMQP intermediary.
+If a section of the bare message is omitted, one MUST NOT be inserted by an intermediary.
+The exact encoding of sections of the bare message MUST NOT be modiﬁed.
+This preserves message hashes, HMACs and signatures based on the binary encoding of the bare message.
+The exact structure of a message, together with its encoding, is deﬁned by the message format.
+This document deﬁnes the structure and semantics of message format 0 (MESSAGE-FORMAT).
+Altogether a message consists of the following sections: • Zero or one header.
+• Zero or one delivery-annotations.
+• Zero or one message-annotations.
+• Zero or one properties.
+• Zero or one application-properties.
+• The body consists of one of the following three choices: one or more data sections, one or more amqp-sequence sections, or a single amqp-value section.
+• Zero or one footer.
+3.2.1 Header Transport headers for a message.
+If the header section is omitted the receiver MUST assume the appropriate default values (or the meaning implied by no value being set) for the ﬁelds within the header unless other target or node speciﬁc defaults have otherwise been set.
+Field Details durable specify durability requirements Durable messages MUST NOT be lost even if an intermediary is unexpectedly terminated and restarted.
+A target which is not capable of fulﬁlling this guarantee MUST NOT accept messages where the durable header is set to true: if the source allows the rejected outcome then the message SHOULD be rejected with the precondition-failed error, otherwise the link MUST be detached by the receiver with the same error.
+priority relative message priority This ﬁeld contains the relative message priority.
+Higher numbers indicate higher priority mes- sages.
+Messages with higher priorities MAY be delivered before those with lower priorities.
+An AMQP intermediary implementing distinct priority levels MUST do so in the following manner: • If n distinct priorities are implemented and n is less than 10 – priorities 0 to (5 - ceiling(n/2)) MUST be treated equivalently and MUST be the lowest effective priority.
+The priorities (4 + ﬂoor(n/2)) and above MUST be treated equivalently and MUST be the highest effective priority.
+The priorities (5 - ceiling(n/2)) to (4 + ﬂoor(n/2)) inclusive MUST be treated as distinct priorities.
+• If n distinct priorities are implemented and n is 10 or greater – priorities 0 to (n - 1) MUST be distinct, and priorities n and above MUST be equivalent to priority (n - 1).
+Thus, for example, if 2 distinct priorities are implemented, then levels 0 to 4 are equivalent, and levels 5 to 9 are equivalent and levels 4 and 5 are distinct.
+If 3 distinct priorities are implements the 0 to 3 are equivalent, 5 to 9 are equivalent and 3, 4 and 5 are distinct.
+This scheme ensures that if two priorities are distinct for a server which implements m separate priority levels they are also distinct for a server which implements n different priority levels where n > m. ttl time to live in ms Duration in milliseconds for which the message is to be considered “live”.
+If this is set then a message expiration time will be computed based on the time of arrival at an intermediary.
+Messages that live longer than their expiration time will be discarded (or dead lettered).
+When a message is transmitted by an intermediary that was received with a ttl, the transmitted message’s header SHOULD contain a ttl that is computed as the difference between the current time and the formerly computed message expiration time, i.e., the reduced ttl, so that messages will eventually die if they end up in a delivery loop.
+first-acquirer If this value is true, then this message has not been acquired by any other link (see section 3.3).
+If this value is false, then this message MAY have previously been acquired by another link or links.
+delivery-count the number of prior unsuccessful delivery attempts The number of unsuccessful previous attempts to deliver this message.
+If this value is non-zero it can be taken as an indication that the delivery might be a duplicate.
+On ﬁrst delivery, the value is zero.
+It is incremented upon an outcome being settled at the sender, according to rules deﬁned for each outcome.
+3.2.2 Delivery Annotations </type> The delivery-annotations section is used for delivery-speciﬁc non-standard properties at the head of the message.
+Delivery annotations convey information from the sending peer to the receiving peer.
+If the recipient does not understand the annotation it cannot be acted upon and its effects (such as any implied propagation) cannot be acted upon.
+Annotations might be speciﬁc to one implementation, or common to multiple implementations.
+The capabilities negotiated on link attach and on the source and target SHOULD be used to establish which anno- tations a peer supports.
+A registry of deﬁned annotations and their meanings is maintained [AMQPDELANN].
+The symbolic key “rejected” is reserved for the use of communicating error information regarding rejected messages.
+Any values associated with the “rejected” key MUST be of type error.
+If the delivery-annotations section is omitted, it is equivalent to a delivery-annotations section containing an empty map of annotations.
+3.2.3 Message Annotations </type> The message-annotations section is used for properties of the message which are aimed at the infrastructure and SHOULD be propagated across every delivery step.
+Message annotations convey information about the message.
+Intermediaries MUST propagate the annotations unless the annotations are explicitly augmented or modiﬁed (e.g., by the use of the modified outcome).
+The capabilities negotiated on link attach and on the source and target can be used to establish which anno- tations a peer understands; however, in a network of AMQP intermediaries it might not be possible to know if every intermediary will understand the annotation.
+Note that for some annotations it might not be necessary for the intermediary to understand their purpose, i.e., they could be used purely as an attribute which can be ﬁltered on.
+A registry of deﬁned annotations and their meanings is maintained [AMQPMESSANN].
+If the message-annotations section is omitted, it is equivalent to a message-annotations section containing an empty map of annotations.
+3.2.4 Properties Immutable properties of the message.
+The properties section is part of the bare message; therefore, if retransmitted by an intermediary, it MUST remain unaltered.
+Field Details message-id application message identiﬁer Message-id, if set, uniquely identiﬁes a message within the message system.
+The message producer is usually responsible for setting the message-id in such a way that it is assured to be globally unique.
+A broker MAY discard a message as a duplicate if the value of the message-id matches that of a previously received message sent to the same node.
+user-id creating user id The identity of the user responsible for producing the message.
+The client sets this value, and it MAY be authenticated by intermediaries.
+to the address of the node the message is destined for The to ﬁeld identiﬁes the node that is the intended destination of the message.
+On any given transfer this might not be the node at the receiving end of the link.
+subject the subject of the message A common ﬁeld for summary information about the message content and purpose.
+reply-to the node to send replies to The address of the node to send replies to.
+correlation-id application correlation identiﬁer This is a client-speciﬁc id that can be used to mark or identify messages between clients.
+content-type MIME content type The RFC-2046 [RFC2046] MIME type for the message’s application-data section (body).
+As per RFC-2046 [RFC2046] this can contain a charset parameter deﬁning the character encoding used: e.g., ’text/plain; charset=“utf-8”’.
+For clarity, as per section 7.2.1 of RFC-2616 [RFC2616], where the content type is unknown the content-type SHOULD NOT be set.
+This allows the recipient the opportunity to determine the actual type.
+Where the section is known to be truly opaque binary data, the content-type SHOULD be set to application/octet-stream.
+When using an application-data section with a section code other than data, content-type SHOULD NOT be set.
+content-encoding MIME content type The content-encoding property is used as a modiﬁer to the content-type.
+When present, its value indicates what additional content encodings have been applied to the application-data, and thus what decoding mechanisms need to be applied in order to obtain the media-type referenced by the content-type header ﬁeld.
+Content-encoding is primarily used to allow a document to be compressed without losing the identity of its underlying content type.
+Content-encodings are to be interpreted as per section 3.5 of RFC 2616 [RFC2616].
+Valid content-encodings are registered at IANA [IANAHTTPPARAMS].
+The content-encoding MUST NOT be set when the application-data section is other than data.
+The binary representation of all other application-data section types is deﬁned completely in terms of the AMQP type system.
+Implementations MUST NOT use the identity encoding.
+Instead, implementations SHOULD NOT set this property.
+Implementations SHOULD NOT use the compress encoding, except as to re- main compatible with messages originally sent with other protocols, e.g.
+HTTP or SMTP.
+Implementations SHOULD NOT specify multiple content-encoding values except as to be com- patible with messages originally sent with other protocols, e.g.
+HTTP or SMTP.
+absolute-expiry-time the time when this message is considered expired An absolute time when this message is considered to be expired.
+creation-time the time when this message was created An absolute time when this message was created.
+group-id the group this message belongs to Identiﬁes the group the message belongs to.
+group-sequence the sequence-no of this message within its group The relative position of this message within its group.
+reply-to-group-id the group the reply message belongs to This is a client-speciﬁc id that is used so that client can send replies to this message to a speciﬁc group.
+3.2.5 Application Properties </type> The application-properties section is a part of the bare message used for structured application data.
+Intermedi- aries can use the data within this structure for the purposes of ﬁltering or routing.
+The keys of this map are restricted to be of type string (which excludes the possibility of a null key) and the values are restricted to be of simple types only, that is, excluding map, list, and array types.
+3.2.6 Data </type> A data section contains opaque binary data.
+3.2.7 AMQP Sequence </type> A sequence section contains an arbitrary number of structured data elements.
+3.2.8 AMQP Value </type> An amqp-value section contains a single AMQP value.
+3.2.9 Footer Transport footers for a message.
+A registry of deﬁned footers and their meanings is maintained [AMQPFOOTER].
+3.2.10 Annotations The annotations type is a map where the keys are restricted to be of type symbol or of type ulong.
+All ulong keys, and all symbolic keys except those beginning with “x-” are reserved.
+Keys beginning with “x-opt-” MUST be ignored if not understood.
+On receiving an annotation key which is not understood, and which does not begin with “x-opt”, the receiving AMQP container MUST detach the link with a not-implemented error.
+3.2.11 Message ID ULong 3.2.12 Message ID UUID 3.2.13 Message ID Binary 3.2.14 Message ID String 3.2.15 Address String Address of a node.
+3.2.16 Constant Deﬁnitions MESSAGE-FORMAT 0 the format + revision for the messages deﬁned by this doc- ument.
+This value goes into the message-format ﬁeld of the trans- fer frame when transferring messages of the format de- ﬁned herein.
+3.3 Distribution Nodes The messaging layer deﬁnes a set of states for a distribution node, deﬁned as a node that stores messages for distribution.
+Not all nodes are distribution nodes; however, these deﬁnitions permit some standardized interaction with those nodes that do.
+The transitions between these states are controlled by the transfer of messages to/from a distribution node and the resulting terminal delivery state.
+Note that the state of a message at one distribution node does not affect the state of the same message at a separate node.
+By default a message will begin in the AVAILABLE state.
+Prior to initiating an acquiring transfer, the message will transition to the ACQUIRED state.
+Once in the ACQUIRED state, a message is ineligible for acquiring transfers to any other links.
+A message will remain ACQUIRED at the distribution node until the transfer is settled.
+The delivery state at the receiver determines how the message transitions when the transfer is settled.
+If the delivery state at the receiver is not yet known, (e.g., the link endpoint is destroyed before recovery occurs) the default-outcome of the source is used (see source).
+State transitions can also occur spontaneously at the distribution node.
+For example if a message with a ttl expires, the effect of expiry might be (depending on speciﬁc type and conﬁguration of the distribution node) to move spontaneously from the AVAILABLE state into the ARCHIVED state.
+In this case any transfers of the message are transitioned to a terminal outcome at the distribution node regardless of receiver state.
+Delivery states can be either terminal or non-terminal.
+Once a delivery reaches a terminal delivery state, the state for that delivery will no longer change.
+A terminal delivery state is referred to as an outcome.
+The following outcomes are formally deﬁned by the messaging layer to indicate the result of processing at the receiver: • accepted: indicates successful processing at the receiver.
+• rejected: indicates an invalid and unprocessable message.
+• released: indicates that the message was not (and will not be) processed.
+• modified: indicates that the message was modiﬁed, but not processed.
+The following non-terminal delivery-state is formally deﬁned by the messaging layer for use during link recovery to allow the sender to resume the transfer of a large message without retransmitting all the message data: • received: indicates partial message data seen by the receiver as well as the starting point for a resumed transfer.
+3.4.1 Received <field name="section-number" type="uint" mandatory="true"/> <field name="section-offset" type="ulong" mandatory="true"/> </type> At the target the received state indicates the furthest point in the payload of the message which the target will not need to have resent if the link is resumed.
+At the source the received state represents the earliest point in the payload which the sender is able to resume transferring at in the case of link resumption.
+When resuming a delivery, if this state is set on the ﬁrst transfer performative it indicates the offset in the payload at which the ﬁrst resumed delivery is starting.
+The sender MUST NOT send the received state on transfer or disposition performatives except on the ﬁrst transfer performative on a resumed delivery.
+Field Details section-number When sent by the sender this indicates the ﬁrst section of the message (with section-number 0 being the ﬁrst section) for which data can be resent.
+Data from sections prior to the given section cannot be retransmitted for this delivery.
+When sent by the receiver this indicates the ﬁrst section of the message for which all data might not yet have been received.
+section-offset When sent by the sender this indicates the ﬁrst byte of the encoded section data of the section given by section-number for which data can be resent (with section-offset 0 being the ﬁrst byte).
+Bytes from the same section prior to the given offset section cannot be retransmitted for this delivery.
+When sent by the receiver this indicates the ﬁrst byte of the given section which has not yet been received.
+Note that if a receiver has received all of section number X (which contains N bytes of data), but none of section number X + 1, then it can indicate this by sending ei- ther Received(section-number=X, section-offset=N) or Received(section-number=X+1, section- offset=0).
+The state Received(section-number=0, section-offset=0) indicates that no message data at all has been transferred.
+3.4.2 Accepted The accepted outcome.
+A delivery can become accepted at the source even before all transfer frames have been sent, this does not imply that the remaining transfers for the delivery will not be sent - only the aborted ﬂag on the transfer performative can be used to indicate a premature termination of the transfer.
+At the target, the accepted outcome is used to indicate that an incoming message has been successfully pro- cessed, and that the receiver of the message is expecting the sender to transition the delivery to the accepted state at the source.
+The accepted outcome does not increment the delivery-count in the header of the accepted message.
+3.4.3 Rejected The rejected outcome.
+The rejected outcome when applied to a message will cause the delivery-count to be incremented in the header of the rejected message.
+At the source, the rejected outcome means that the target has informed the source that the message was rejected, and the source has taken the necessary action.
+The delivery SHOULD NOT ever spontaneously attain the rejected state at the source.
+Field Details error error that caused the message to be rejected This ﬁeld contains diagnostic information about the cause of the message rejection.
+3.4.4 Released The released outcome.
+The message is unchanged at the node (i.e., the delivery-count of the header of the released message MUST NOT be incremented).
+As released is a terminal outcome, transfer of payload data will not be able to be resumed if the link becomes suspended.
+A delivery can become released at the source even before all transfer frames have been sent.
+This does not imply that the remaining transfers for the delivery will not be sent.
+The source MAY spontaneously attain the released outcome for a message (for example the source might implement some sort of time-bound acquisition lock, after which the acquisition of a message at a node is revoked to allow for delivery to an alternative consumer).
+At the target, the released outcome is used to indicate that a given transfer was not and will not be acted upon.
+3.4.5 Modiﬁed The modiﬁed outcome.
+The message has been changed at the node in the ways indicated by the ﬁelds of the outcome.
+As modiﬁed is a terminal outcome, transfer of payload data will not be able to be resumed if the link becomes suspended.
+A delivery can become modiﬁed at the source even before all transfer frames have been sent.
+This does not imply that the remaining transfers for the delivery will not be sent.
+The source MAY spontaneously attain the modiﬁed outcome for a message (for example the source might implement some sort of time-bound acquisition lock, after which the acquisition of a message at a node is revoked to allow for delivery to an alternative consumer with the message modiﬁed in some way to denote the previous failed, e.g., with delivery-failed set to true).
+At the target, the modiﬁed outcome is used to indicate that a given transfer was not and will not be acted upon, and that the message SHOULD be modiﬁed in the speciﬁed ways at the node.
+Field Details delivery-failed count the transfer as an unsuccessful delivery attempt If the delivery-failed ﬂag is set, any messages modiﬁed MUST have their delivery-count incre- mented.
+undeliverable-here prevent redelivery If the undeliverable-here is set, then any messages released MUST NOT be redelivered to the modifying link endpoint.
+message-annotations message attributes Map containing attributes to combine with the existing message-annotations held in the message’s header section.
+Where the existing message-annotations of the message contain an entry with the same key as an entry in this ﬁeld, the value in this ﬁeld associated with that key replaces the one in the existing headers; where the existing message-annotations has no such value, the value in this map is added.
+3.4.6 Resuming Deliveries Using Delivery States Part 2: 2.6.13 Resuming Deliveries provides the general scheme for how two endpoints can re-establish state after link resumption was provided.
+The concrete delivery states deﬁned above allow for a more comprehensive set of examples of link resumption.
+For delivery-tag 1, the receiver has no record of the delivery.
+To preserve “exactly once” or “at least once” delivery guarantees, the sender MUST resend the message; however, the delivery is not being resumed (since the receiver does not remember the delivery tag) so transfers MUST NOT have the resume ﬂag set to true.
+If the sender were to mark the transfers as resumes then they would be ignored at the receiver.
+For delivery-tag 2, the receiver has retained some of the data making up the message, but not the whole.
+In order to complete the delivery the sender needs to resume sending from some point before or at the next position which the receiver is expecting.
+** resume=true) { ** payload ** } (1) state could be a) null, meaning that the transfer is being resumed from the first byte of section number 0 (and the receiver MUST ignore all data up to the first position it has not previously received).
+b) Received with section number 0, 1 or 2 and an offset, indicating that the payload data on the first frame of the resumed delivery starts at the given point, and that the receiver MUST ignore all data up to the first position it has not previously received.
+c) Received(3,0) indicating that the resumption will start at the first point which the receiver has not previously received.
+For delivery-tag 3, the receiver indicates that it has processed the delivery to the point where it desires a terminal outcome (in this case accepted).
+In this case the sender will either apply that outcome at the source, or in the rare case that it cannot apply that outcome, indicate the terminal outcome that has been applied.
+To do this the sender MUST send a resuming transfer to associate delivery-tag 3 with a delivery-id.
+On this transfer the sender SHOULD set the delivery-state at the source.
+If this is the same outcome as at the receiver then the sender MAY also send the resuming transfer as settled.
+** settled=true, more=false, state=Accepted, resume=true) For delivery-tag 4, the receiver indicates that it is aware that the delivery had begun, but does not provide any indication that it has retained any data about that delivery except the fact of its existence.
+To preserve “exactly once” or “at least once” delivery guarantees, the sender MUST resend the whole message.
+Unlike the case with delivery-tag 1 the resent delivery MUST be sent with the resume ﬂag set to true and the delivery-tag set to 4.
+(While this use of null in the receivers map is valid, it is discouraged.
+It is RECOMMENDED that receiver SHOULD NOT retain such an entry in its map, in which case the situation would be as for delivery-tag 1 in this example).
+** resume=true) { ** payload ** } (1) Alternatively (and equivalently) state could be Received(section-number=0, section-offset=0) For delivery-tags 5 to 9 inclusive the sender indicates that it can resume at some point beyond start of the message data.
+This is usually indicative of the fact that the receiver had previously conﬁrmed reception of message data to the given point, removing responsibility from the sender to retain the ability to resend that data after resuming the link.
+The sender MAY still retain the ability to resend the message as a new delivery (i.e.
+it MAY not have completely discarded the data from which the original delivery was generated).
+For delivery-tag 5, the receiver has no record of the delivery.
+To preserve “exactly once” or “at least once” delivery guarantees, the sender MUST resend the message; however, the delivery is not being resumed (since the receiver does not remember the delivery tag) so transfers MUST NOT have the resume ﬂag set to true.
+If the sender does not have enough data to resend the message, then the sender MAY take some action to indicate that it believes there is a possibility that there has been message loss, for example, notify the application.
+For delivery-tag 6, the receiver has retained some of the data making up the message, but not the whole.
+The ﬁrst position within the message which the receiver has not received is after the ﬁrst position at which the sender can resume sending.
+In order to complete the delivery the sender needs to resume sending from some point before or at the next position which the receiver is expecting.
+** resume=true) { ** payload ** } (1) state could be any point between Received(1,150) and Received(2,0) inclusive.
+The receiver MUST ignore all data up to the first position it has not previously received (i.e.
+section 2 offset 0).
+For delivery-tag 7, the receiver has retained some of the data making up the message, but not the whole.
+The ﬁrst position within the message which the receiver has not received is before the ﬁrst position at which the sender can resume sending.
+It is thus not possible for the sender to resume sending the message to completion.
+The only option available to the sender is to abort the transfer and to then (if possible) resend as a new delivery or else to report the possible message loss in some way if it cannot.
+** resume=true, aborted=true) For delivery-tag 8, the receiver indicates that it has processed the delivery to the point where it desires a terminal outcome (in this case accepted).
+This is the same case as for delivery-tag 3.
+** settled=true, more=false, state=Accepted, resume=true) For delivery-tag 9, the receiver indicates that it is aware that the delivery had begun, but does not provide any indication that it has retained any data about that delivery except the fact of its existence.
+This is the same case as for delivery-tag 7.
+** resume=true, aborted=true) For delivery-tags 10 to 14 inclusive the sender indicates that it has reached a terminal outcome, namely accepted.
+Once the sender has arrived at a terminal outcome it MUST NOT change.
+As such, if a sender is capable of resuming a delivery (even if the only possible outcome of the delivery is a pre-deﬁned terminal outcome such as accepted) it MUST NOT use this state as the value of the state in its unsettled map until it is sure that the receiver will not require the resending of the message data.
+For delivery-tag 10 the receiver has no record of the delivery.
+However, in contrast to the cases of delivery-tag 1 and delivery-tag 5, since it is known that the sender can only have arrived at this state through knowing that the receiver has received the whole message (or that the sender had spontaneously reached a terminal outcome with no possibility of resumption) there is no need to resend the message.
+For delivery-tag 11 it MUST be assumed that the sender spontaneously attained the terminal outcome (and is unable to resume).
+In this case the sender can simply abort the delivery as it cannot be resumed.
+** resume=true, aborted=true) For delivery-tag 12 both the sender and receiver have attained the same view of the terminal outcome, but neither has settled.
+In this case the sender SHOULD simply settle the delivery.
+In this case, since the outcome actually takes effect at the sender, it is the sender’s view that is deﬁnitive.
+The sender thus MUST restate this as the terminal outcome, and the receiver SHOULD then echo this and settle.
+** resume=true, aborted=true) 3.5 Sources and Targets The messaging layer deﬁnes two concrete types (source and target) to be used as the source and target of a link.
+These types are supplied in the source and target ﬁelds of the attach frame when establishing or resuming link.
+The source is comprised of an address (which the container of the outgoing link endpoint will resolve to a node within that container) coupled with properties which determine: • which messages from the sending node will be sent on the link, • how sending the message affects the state of that message at the sending node, • the behavior of messages which have been transferred on the link, but have not yet reached a terminal state at the receiver, when the source is destroyed.
+3.5.1 Filtering Messages A source can restrict the messages transferred from a source by specifying a ﬁlter.
+A ﬁlter can be thought of as a function which takes a message as input and returns a boolean value: true if the message will be accepted by the source, false otherwise.
+A ﬁlter MUST NOT change its return value for a message unless the state or annotations on the message at the node change (e.g., through an updated delivery state).
+3.5.2 Distribution Modes The source optionally deﬁnes a distribution-mode that informs and/or indicates how distribution nodes are to behave with respect to the link.
+The distribution-mode of a source determines how messages from a distribution node are distributed among its associated links.
+There are two deﬁned distribution-modes: move and copy.
+When speciﬁed, the distribution-mode has two related effects on the behavior of a distribution node with respect to the link associated with the source.
+The move distribution-mode causes messages transferred from the distribution node to transition to the AC- QUIRED state prior to transfer over the link, and subsequently to the ARCHIVED state when the transfer is settled with a successful outcome.
+The copy distribution-mode leaves the state of the message unchanged at the distribution node.
+A source MUST NOT resend a message which has previously been successfully transferred from the source, i.e., reached an ACCEPTED delivery state at the receiver.
+For a move link with a default conﬁguration this is trivially achieved as such an end result will lead to the message in the ARCHIVED state on the node, and thus ineligible for transfer.
+For a copy link, state MUST be retained at the source to ensure compliance.
+In practice, for nodes which maintain a strict order on messages at the node, the state might simply be a record of the most recent message transferred.
+A registry of commonly deﬁned non-standard distribution-modes and their meanings is maintained [AMQPDIST- MODE].
+3.5.3 Source <field name="address" type="*" requires="address"/> <field name="durable" type="terminus-durability" default="none"/> <field name="expiry-policy" type="terminus-expiry-policy" default="session-end"/> <field name="timeout" type="seconds" default="0"/> <field name="dynamic" type="boolean" default="false"/> <field name="dynamic-node-properties" type="node-properties"/> <field name="distribution-mode" type="symbol" requires="distribution-mode"/> <field name="filter" type="filter-set"/> <field name="default-outcome" type="*" requires="outcome"/> <field name="outcomes" type="symbol" multiple="true"/> <field name="capabilities" type="symbol" multiple="true"/> </type> For containers which do not implement address resolution (and do not admit spontaneous link attachment from their partners) but are instead only used as producers of messages, it is unnecessary to provide spurious detail on the source.
+For this purpose it is possible to use a “minimal” source in which all the ﬁelds are left unset.
+Field Details address the address of the source The address of the source MUST NOT be set when sent on a attach frame sent by the receiving link endpoint where the dynamic ﬂag is set to true (that is where the receiver is requesting the sender to create an addressable node).
+The address of the source MUST be set when sent on a attach frame sent by the sending link endpoint where the dynamic ﬂag is set to true (that is where the sender has created an addressable node at the request of the receiver and is now communicating the address of that created node).
+The generated name of the address SHOULD include the link name and the container-id of the remote container to allow for ease of identiﬁcation.
+durable indicates the durability of the terminus Indicates what state of the terminus will be retained durably: the state of durable messages, only existence and conﬁguration of the terminus, or no state at all.
+expiry-policy the expiry policy of the source See subsection 3.5.6 Terminus Expiry Policy.
+timeout duration that an expiring source will be retained The source starts expiring as indicated by the expiry-policy.
+dynamic request dynamic creation of a remote node When set to true by the receiving link endpoint, this ﬁeld constitutes a request for the sending peer to dynamically create a node at the source.
+In this case the address ﬁeld MUST NOT be set.
+When set to true by the sending link endpoint this ﬁeld indicates creation of a dynamically created node.
+In this case the address ﬁeld will contain the address of the created node.
+The generated address SHOULD include the link name and other available information on the initiator of the request (such as the remote container-id) in some recognizable form for ease of traceability.
+dynamic-node-properties properties of the dynamically created node If the dynamic ﬁeld is not set to true this ﬁeld MUST be left unset.
+When set by the receiving link endpoint, this ﬁeld contains the desired properties of the node the receiver wishes to be created.
+When set by the sending link endpoint this ﬁeld contains the actual properties of the dynamically created node.
+See subsection 3.5.9 Node Properties for standard node properties.
+A registry of other commonly used node-properties and their meanings is maintained [AMQPNODEPROP].
+distribution-mode the distribution mode of the link This ﬁeld MUST be set by the sending end of the link if the endpoint supports more than one distribution-mode.
+This ﬁeld MAY be set by the receiving end of the link to indicate a preference when a node supports multiple distribution modes.
+filter a set of predicates to ﬁlter the messages admitted onto the link See subsection 3.5.8 Filter Set.
+The receiving endpoint sets its desired ﬁlter, the sending endpoint sets the ﬁlter actually in place (including any ﬁlters defaulted at the node).
+The receiving endpoint MUST check that the ﬁlter in place meets its needs and take responsibility for detaching if it does not.
+default-outcome default outcome for unsettled transfers Indicates the outcome to be used for transfers that have not reached a terminal state at the receiver when the transfer is settled, including when the source is destroyed.
+The value MUST be a valid outcome (e.g., released or rejected).
+outcomes descriptors for the outcomes that can be chosen on this link The values in this ﬁeld are the symbolic descriptors of the outcomes that can be chosen on this link.
+This ﬁeld MAY be empty, indicating that the default-outcome will be assumed for all message transfers (if the default-outcome is not set, and no outcomes are provided, then the accepted outcome MUST be supported by the source).
+When present, the values MUST be a symbolic descriptor of a valid outcome, e.g., “amqp:accepted:list”.
+capabilities the extension capabilities the sender supports/desires A registry of commonly deﬁned source capabilities and their meanings is maintained [AMQP- SOURCECAP].
+3.5.4 Target <field name="address" type="*" requires="address"/> <field name="durable" type="terminus-durability" default="none"/> <field name="expiry-policy" type="terminus-expiry-policy" default="session-end"/> <field name="timeout" type="seconds" default="0"/> <field name="dynamic" type="boolean" default="false"/> <field name="dynamic-node-properties" type="node-properties"/> <field name="capabilities" type="symbol" multiple="true"/> </type> For containers which do not implement address resolution (and do not admit spontaneous link attachment from their partners) but are instead only used as consumers of messages, it is unnecessary to provide spurious detail on the source.
+For this purpose it is possible to use a “minimal” target in which all the ﬁelds are left unset.
+Field Details address The address of the target.
+The address of the target MUST NOT be set when sent on a attach frame sent by the sending link endpoint where the dynamic ﬂag is set to true (that is where the sender is requesting the receiver to create an addressable node).
+The address of the source MUST be set when sent on a attach frame sent by the receiving link endpoint where the dynamic ﬂag is set to true (that is where the receiver has created an addressable node at the request of the sender and is now communicating the address of that created node).
+The generated name of the address SHOULD include the link name and the container-id of the remote container to allow for ease of identiﬁcation.
+durable indicates the durability of the terminus Indicates what state of the terminus will be retained durably: the state of durable messages, only existence and conﬁguration of the terminus, or no state at all.
+expiry-policy the expiry policy of the target See subsection 3.5.6 Terminus Expiry Policy.
+timeout duration that an expiring target will be retained The target starts expiring as indicated by the expiry-policy.
+dynamic request dynamic creation of a remote node When set to true by the sending link endpoint, this ﬁeld constitutes a request for the receiving peer to dynamically create a node at the target.
+In this case the address ﬁeld MUST NOT be set.
+When set to true by the receiving link endpoint this ﬁeld indicates creation of a dynamically created node.
+In this case the address ﬁeld will contain the address of the created node.
+The generated address SHOULD include the link name and other available information on the initiator of the request (such as the remote container-id) in some recognizable form for ease of traceability.
+dynamic-node-properties properties of the dynamically created node If the dynamic ﬁeld is not set to true this ﬁeld MUST be left unset.
+When set by the sending link endpoint, this ﬁeld contains the desired properties of the node the sender wishes to be created.
+When set by the receiving link endpoint this ﬁeld contains the actual properties of the dynamically created node.
+See subsection 3.5.9 Node Properties for standard node properties.
+A registry of other commonly used node-properties and their meanings is maintained [AMQPNODEPROP].
+capabilities the extension capabilities the sender supports/desires A registry of commonly deﬁned target capabilities and their meanings is maintained [AMQPTAR- GETCAP].
+3.5.5 Terminus Durability Durability policy for a terminus.
+<choice name="none" value="0"/> <choice name="configuration" value="1"/> <choice name="unsettled-state" value="2"/> </type> Determines which state of the terminus is held durably.
+Valid Values No terminus state is retained durably.
+Only the existence and conﬁguration of the terminus is retained durably.
+In addition to the existence and conﬁguration of the terminus, the unsettled state for durable messages is retained durably.
+3.5.6 Terminus Expiry Policy Expiry policy for a terminus.
+<choice name="link-detach" value="link-detach"/> <choice name="session-end" value="session-end"/> <choice name="connection-close" value="connection-close"/> <choice name="never" value="never"/> </type> Determines when the expiry timer of a terminus starts counting down from the timeout value.
+If the link is sub- sequently re-attached before the terminus is expired, then the count down is aborted.
+If the conditions for the terminus-expiry-policy are subsequently re-met, the expiry timer restarts from its originally conﬁgured timeout value.
+Valid Values link-detach The expiry timer starts when terminus is detached.
+session-end The expiry timer starts when the most recently associated session is ended.
+connection-close The expiry timer starts when most recently associated connection is closed.
+never The terminus never expires.
+3.5.7 Standard Distribution Mode Link distribution policy.
+<choice name="move" value="move"/> <choice name="copy" value="copy"/> </type> Policies for distributing messages when multiple links are connected to the same node.
+Valid Values move once successfully transferred over the link, the message will no longer be avail- able to other links from the same node copy once successfully transferred over the link, the message is still available for other links from the same node 3.5.8 Filter Set A set of named ﬁlters.
+Every key in the map MUST be of type symbol, every value MUST be either null or of a described type which provides the archetype ﬁlter.
+A ﬁlter acts as a function on a message which returns a boolean result indicating whether the message can pass through that ﬁlter or not.
+A message will pass through a ﬁlter-set if and only if it passes through each of the named ﬁlters.
+If the value for a given key is null, this acts as if there were no such key present (i.e., all messages pass through the null ﬁlter).
+Filter types are a deﬁned extension point.
+The ﬁlter types that a given source supports will be indicated by the capabilities of the source.
+A registry of commonly deﬁned ﬁlter types and their capabilities is maintained [AMQPFILTERS].
+3.5.9 Node Properties Properties of a node.
+A symbol-keyed map containing properties of a node used when requesting creation or reporting the creation of a dynamic node.
+The following common properties are deﬁned: lifetime-policy The lifetime of a dynamically generated node.
+Deﬁnitionally, the lifetime will never be less than the lifetime of the link which caused its creation, however it is possible to extend the lifetime of dynamically created node using a lifetime policy.
+The value of this entry MUST be of a type which provides the lifetime-policy archetype.
+The following standard lifetime-policies are deﬁned below: delete-on-close, delete-on-no-links, delete-on-no-messages or delete-on-no-links-or-messages.
+supported-dist-modes The distribution modes that the node supports.
+The value of this entry MUST be one or more symbols which are valid distribution-modes.
+That is, the value MUST be of the same type as would be valid in a ﬁeld deﬁned with the following attributes: type=“symbol” multiple=“true” requires=“distribution-mode” 3.5.10 Delete On Close Lifetime of dynamic node scoped to lifetime of link which caused creation.
+3.5.11 Delete On No Links Lifetime of dynamic node scoped to existence of links to the node.
+3.5.12 Delete On No Messages Lifetime of dynamic node scoped to existence of messages on the node.
+3.5.13 Delete On No Links Or Messages Lifetime of node scoped to existence of messages on or links to the node.
+Part 4: Transactions 4.1 Transactional Messaging Transactional messaging allows for the coordinated outcome of otherwise independent transfers.
+This extends to an arbitrary number of transfers spread across any number of distinct links in either direction.
+For every transactional interaction, one container acts as the transactional resource, and the other container acts as the transaction controller.
+The transactional resource performs transactional work as requested by the transaction controller.
+The transactional controller and transactional resource communicate over a control link which is established by the transactional controller.
+The declare and discharge messages are sent by the transactional controller over the control link to allocate and complete transactions respectively (they do not represent the demarcation of transactional work).
+No transactional work is allowed on the control link.
+Each transactional operation requested is explicitly identiﬁed with the desired transaction-id and therefore can occur on any link within the controlling session, or, if permitted by the capabilities of the controller, any link on the controlling connection.
+If the control link is closed while there exist non-discharged transactions it created, then all such transactions are immediately rolled back, and attempts to perform further transactional work on them will lead to failure.
+4.2 Declaring a Transaction The container acting as the transactional resource deﬁnes a special target that functions as a coordinator.
+The transaction controller establishes a control link to this target.
+Note that links to the coordinator cannot be resumed.
+To begin transactional work, the transaction controller needs to obtain a transaction identiﬁer from the resource.
+It does this by sending a message to the coordinator whose body consists of the declare type in a single amqp-value section.
+Other standard message sections such as the header section SHOULD be ignored.
+This message MUST NOT be sent settled as the sender is REQUIRED to receive and interpret the outcome of the declare from the receiver.
+If the coordinator receives a transfer that has been settled by the sender, it SHOULD detach with an amqp:illegal-state error.
+If the declaration is successful, the coordinator responds with a disposition outcome of declared which carries the assigned identiﬁer for the transaction.
+If the coordinator was unable to perform the declare as speciﬁed by the transaction controller, the transaction coordinator MUST convey the error to the controller as a transaction-error.
+If the source for the link to the coordinator supports the rejected outcome, then the message MUST be rejected with this outcome carrying the transaction-error.
+If the source does not support the rejected outcome, the transactional resource MUST detach the link to the coordinator, with the detach performative carrying the transaction-error.
+Transaction controllers SHOULD establish a control link that allows the rejected outcome.
+The controller indicates that it wishes to commit or rollback the transactional work by setting the fail ﬂag on the discharge body.
+As with the declare message, it is an error if the sender sends the transfer pre-settled.
+If the coordinator is unable to complete the discharge, the coordinator MUST convey the error to the controller as a transaction-error.
+If the source for the link to the coordinator supports the rejected outcome, then the message MUST be rejected with this outcome carrying the transaction-error.
+If the source does not support the rejected outcome, the transactional resource MUST detach the link to the coordinator, with the detach performative carrying the transaction-error.
+Note that the coordinator MUST always be able to complete a discharge where the fail ﬂag is set to true (since coordinator failure leads to rollback, which is what the controller is asking for).
+Transactional work is formally deﬁned to be composed of the following operations: • posting a message at a target, i.e., making it available • acquiring a message at a source, i.e., transitioning it to acquired • retiring a message at a source, i.e., applying the terminal outcome The transactional resource performs these operations when triggered by the transaction controller: • posting messages is initiated by incoming transfer frames • acquiring messages is initiated by incoming flow frames • retiring messages is initiated by incoming disposition frames In each case, it is the responsibility of the transaction controller to identify the transaction with which the requested work is to be associated.
+This is done with the transactional delivery state transactional-state that combines a txn-id together with one of the terminal delivery states deﬁned in Part 3: section 3.4.
+The transactional-state is carried by both the transfer and the disposition frames allowing both the posting and retiring of messages to be associated with a transaction.
+The transfer, disposition, and flow frames can travel in either direction, i.e., from the controller to the resource and from the resource to the controller.
+When these frames travel from the controller to the resource, any em- bedded txn-ids are requesting that the resource assigns transactional work to the indicated transaction.
+When traveling in the other direction, from resource to controller, the transfer and disposition frames indicate work performed, and the txn-ids included MUST correctly indicate with which (if any) transaction this work is associated.
+In the case of the flow frame traveling from resource to controller, the txn-id does not indicate work that has been performed, but indicates with which transaction future transfers from that link will be performed.
+4.4.1 Transactional Posting If the transaction controller wishes to associate an outgoing transfer with a transaction, it MUST set the state of the transfer with a transactional-state carrying the appropriate transaction identiﬁer.
+Note that if delivery is split across several transfer frames then all frames MUST be explicitly associated with the same transaction.
+It is an error for the controller to attempt to discharge a transaction against which a partial delivery has been posted.
+If this happens, the control link MUST be terminated with the transaction-rollback error.
+The effect of transactional posting is that the message does not become available at the destination node within the transactional resource until after the transaction has been successfully discharged.
+That is, the resource MUST send a disposition performative which covers the posted transfer with the state of the delivery being a transactional-state with the correct transaction identiﬁed, and a terminal outcome.
+This informs the controller of the outcome that will be in effect at the point that the transaction is successfully discharged.
+4.4.2 Transactional Retirement The transaction controller might wish to associate the outcome of a delivery with a transaction.
+The delivery itself need not be associated with the same transaction as the outcome, or indeed with any transaction at all.
+However, the delivery MUST NOT be associated with a different non-discharged transaction than the outcome.
+If this happens then the control link MUST be terminated with a transaction-rollback error.
+To associate an outcome with a transaction the controller sends a disposition performative which sets the state of the delivery to a transactional-state with the desired transaction identiﬁer and the outcome to be applied upon a successful discharge.
+In the event of a controller-initiated rollback (a discharge where the fail ﬂag is set to true) or a resource-initiated rollback (the discharge message being rejected, or the link to the coordinator being detached with an error), the outcome will not be applied, and the deliveries will still be “live” and will remain acquired by the controller, i.e., the resource can expect the controller to request a disposition for the delivery (either transactionally on a new transaction, or non-transactionally).
+4.4.3 Transactional Acquisition In the case of the flow frame, the transactional work is not necessarily directly initiated or entirely determined when the flow frame arrives at the resource, but can in fact occur at some later point and in ways not necessarily anticipated by the controller.
+To accommodate this, the resource associates an additional piece of state with outgoing link endpoints, a txn-id that identiﬁes the transaction with which acquired messages will be associated.
+This state is determined by the controller by specifying a txn-id entry in the properties map of the ﬂow frame.
+When a transaction is discharged, the txn-id of any link endpoints will be cleared.
+If the link endpoint does not support transactional acquisition, the link MUST be terminated with a not-implemented error.
+While the txn-id is cleared when the transaction is discharged, this does not affect the level of outstanding credit.
+To prevent the sending link endpoint from acquiring outside of any transaction, the controller SHOULD ensure there is no outstanding credit at the sender before it discharges the transaction.
+The controller can do this by either setting the drain mode of the sending link endpoint to true before discharging the transaction, or by reducing the link-credit to zero, and waiting to hear back that the sender has seen this state change.
+If a transaction is discharged at a point where a message has been transactionally acquired, but has not been fully sent (i.e., the delivery of the message will require more than one transfer frame and at least one, but not all, such frames have been sent), then the resource MUST interpret this to mean that the fate of the acquisition is fully decided by the discharge.
+If the discharge indicates the failure of the transaction the resource MUST abort or complete sending the remainder of the message before completing the discharge.
+Transactions do not in themselves change this notion, however the fact that transactional work can be rolled back does have implications for deliveries which the endpoint has marked as settled (and for which it can therefore no longer exchange state information using the previously allocated transport level identiﬁers).
+4.4.4.1 Transactional Posting Delivery Sent Settled By Controller The delivered message will not be made available at the node until the transaction has been successfully discharged.
+If the transaction is rolled back then the delivery is not made available.
+If the resource is unable to process the delivery it MUST NOT allow the successful discharge of the associated transaction.
+This can be communicated by immediately destroying the controlling link on which the transaction was declared, or by rejecting any attempt to discharge the transaction where the fail ﬂag is not set to true.
+Delivery Sent Unsettled By Controller; Resource Settles The resource MUST determine the outcome of the delivery before committing the transaction, and this MUST be communicated to the controller before the acceptance of a successful discharge.
+The outcome communicated by the resource MUST be associated with the same transaction with which the transfer from controller to resource was associated.
+If the transaction is rolled back then the delivery is not made available at the target.
+If the resource can no longer apply the outcome that it originally indicated would be the result of a successful discharge then it MUST NOT allow the successful discharge of the associated transaction.
+This can be communicated by immediately destroying the controlling link on which the transaction was declared, or by rejecting any attempt to discharge the transaction where the fail ﬂag is not set to true.
+Delivery Sent Unsettled By Controller; Resource Does Not Settle Behavior prior to discharge is the same as the previous case.
+After a successful discharge, the state of unsettled deliveries at the resource MUST reﬂect the outcome that was applied.
+If the discharge was unsuccessful then an outcome SHOULD NOT be associated with the unsettled deliveries.
+The controller SHOULD settle any outstanding unsettled deliveries in a timely fashion after the transaction has discharged.
+4.4.4.2 Transactional Retirement This section considers the cases where the resource has sent messages to the controller in a non-transactional fashion.
+For the cases where the resource sends the messages transactionally, see subsubsection 4.4.4.3.
+Delivery Sent Unsettled By Resource; Controller Settles Upon a successful discharge the outcome speciﬁed by the controller is applied at the source.
+If the controller requests a rollback or the discharge attempt be unsuccessful, then the outcome is not applied.
+At this point the controller can no longer inﬂuence the state of the delivery as it is settled, and the resource MUST apply the default outcome.
+Delivery Sent Unsettled By Resource; Controller Does Not Settle The resource might or might not settle the delivery before the transaction is discharged.
+If the resource settles the delivery before the discharge then the behavior after discharge is the same as the case above.
+Upon a successful discharge the outcome is applied.
+Otherwise the state reverts to that which occurred before the controller sent its (transactional) disposition.
+The controller is free to update the state using subsequent transactional or non-transactional updates.
+4.4.4.3 Transactional Acquisition Delivery Sent Settled By Resource In the event of a successful discharge the outcome applies at the resource, otherwise the acquisition and outcome are rolled back.
+Delivery Sent Unsettled By Resource; Controller Sends Outcome An outcome sent by the controller before the transaction has discharged MUST be associated with the same transaction.
+In the even of a successful discharge the outcome is applied at the source, otherwise both the acquisition and outcome are rolled back.
+4.5 Coordination 4.5.1 Coordinator Target for communicating with a transaction coordinator.
+Field Details capabilities the capabilities supported at the coordinator When sent by the transaction controller (the sending endpoint), indicates the desired capabilities of the coordinator.
+When sent by the resource (the receiving endpoint), deﬁned the actual capa- bilities of the coordinator.
+Note that it is the responsibility of the transaction controller to verify that the capabilities of the controller meet its requirements.
+See txn-capability.
+4.5.2 Declare Message body for declaring a transaction id.
+The txn-id allocated for this transaction is chosen by the transaction controller and identiﬁed in the declared resulting outcome.
+Field Details global-id global transaction id Speciﬁes that the txn-id allocated by this declare MUST be associated with the indicated global transaction.
+If not set, the allocated txn-id will be associated with a local transaction.
+This ﬁeld MUST NOT be set if the coordinator does not have the distributed-transactions capability.
+Note that the details of distributed transactions within AMQP 1.0 will be provided in a separate speciﬁcation.
+4.5.3 Discharge Message body for discharging a transaction.
+If the transaction is not associated with a global-id, then this also indicates the disposition of the local transaction.
+Field Details txn-id identiﬁes the transaction to be discharged fail indicates the transaction has failed If set, this ﬂag indicates that the work associated with this transaction has failed, and the controller wishes the transaction to be rolled back.
+If the transaction is associated with a global-id this will render the global transaction rollback-only.
+If the transaction is a local transaction, then this ﬂag controls whether the transaction is committed or aborted when it is discharged.
+(Note that the speciﬁcation for distributed transactions within AMQP 1.0 will be provided separately in Part 6 Distributed Transactions).
+4.5.4 Transaction ID A transaction-id can be up to 32 octets of binary data.
+4.5.5 Declared <field name="txn-id" type="*" requires="txn-id" mandatory="true"/> </type> Indicates that a transaction identiﬁer has successfully been allocated in response to a declare message sent to a transaction coordinator.
+Field Details txn-id the allocated transaction id 4.5.6 Transactional State The state of a transactional message transfer.
+Field Details txn-id identiﬁes the transaction with which the state is associated outcome provisional outcome This ﬁeld indicates the provisional outcome to be applied if the transaction commits.
+4.5.7 Transaction Capability Symbols indicating (desired/available) capabilities of a transaction coordinator.
+<choice name="local-transactions" value="amqp:local-transactions"/> <choice name="distributed-transactions" value="amqp:distributed-transactions"/> <choice name="promotable-transactions" value="amqp:promotable-transactions"/> <choice name="multi-txns-per-ssn" value="amqp:multi-txns-per-ssn"/> <choice name="multi-ssns-per-txn" value="amqp:multi-ssns-per-txn"/> </type> Valid Values amqp:local-transactions Support local transactions.
+amqp:distributed-transactions Support AMQP Distributed Transactions.
+amqp:promotable-transactions Support AMQP Promotable Transactions.
+amqp:multi-txns-per-ssn Support multiple active transactions on a single session.
+amqp:multi-ssns-per-txn Support transactions whose txn-id is used across sessions on one connection.
+4.5.8 Transaction Error Symbols used to indicate transaction errors.
+<choice name="unknown-id" value="amqp:transaction:unknown-id"/> <choice name="transaction-rollback" value="amqp:transaction:rollback"/> <choice name="transaction-timeout" value="amqp:transaction:timeout"/> </type> Valid Values amqp:transaction:unknown-id The speciﬁed txn-id does not exist.
+amqp:transaction:rollback The transaction was rolled back for an unspeciﬁed reason.
+amqp:transaction:timeout The work represented by this transaction took too long.
+Part 5: Security 5.1 Security Layers Security layers are used to establish an authenticated and/or encrypted transport over which regular AMQP trafﬁc can be tunneled.
+Security layers can be tunneled through one another (for instance a security layer used by the peers to do authentication might be tunneled through a security layer established for encryption purposes).
+The framing and protocol deﬁnitions for security layers are expected to be deﬁned externally to the AMQP speciﬁ- cation as in the case of TLS [RFC5246].
+An exception to this is the SASL [RFC4422] security layer which depends on its host protocol to provide framing.
+Therefore section 5.3 deﬁnes the frames necessary for SASL to function.
+When a security layer terminates (either before or after a secure tunnel is established), the TCP connection MUST be closed by ﬁrst shutting down the outgoing stream and then reading the incoming stream until it is terminated.
+5.2 TLS To establish a TLS session, each peer MUST start by sending a protocol header before commencing with TLS negotiation.
+The protocol header consists of the upper case ASCII letters “AMQP” followed by a protocol id of two, followed by three unsigned bytes representing the major, minor, and revision of the speciﬁcation version (currently (TLS-MAJOR), 0 (TLS-MINOR), 0 (TLS-REVISION)).
+• The TLS client peer SHOULD use the server name indication extension as described in RFC-4366 [RFC4366].
+If it does so, then it is undeﬁned what happens if this differs from hostname in the sasl-init and open frame frames.
+This ﬁeld can be used by AMQP proxies to determine the correct back-end service to connect the client to, and to determine the domain to validate the client’s credentials against if TLS client certiﬁcates are being used.
+• The TLS client MUST validate the certiﬁcate presented by the TLS server.
+• Implementations MAY choose to use TLS with unidirectional shutdown, i.e., an application initiating shut- down using close notify is not obliged to wait for the peer to respond, and MAY close the write half of the TCP socket.
+5.2.1 Alternative Establishment In certain situations, such as connecting through ﬁrewalls, it might not be possible to establish a TLS security layer using the above procedure (for example, because a deep packet inspecting ﬁrewall sees the ﬁrst few bytes of the connection ’as not being TLS’).
+As an alternative, implementations MAY run a pure TLS server, i.e., one that does not expect the initial TLS- invoking handshake.
+The IANA service name for this is amqps and the port is SECURE-PORT (5671).
+Imple- mentations MAY also choose to run this pure TLS server on other ports, if this is operationally necessary (e.g., to tunnel through a legacy ﬁrewall that only expects TLS trafﬁc on port 443).
+5.2.2 Constant Deﬁnitions TLS-MAJOR 1 major protocol version.
+TLS-MINOR 0 minor protocol version.
+TLS-REVISION 0 protocol revision.
+5.3 SASL To establish a SASL layer, each peer MUST start by sending a protocol header.
+The protocol header consists of the upper case ASCII letters “AMQP” followed by a protocol id of three, followed by three unsigned bytes representing the major, minor, and revision of the speciﬁcation version (currently 1 (SASL-MAJOR), 0 (SASL- MINOR), 0 (SASL-REVISION)).
+A SASL frame has a type code of 0x01.
+Bytes 6 and 7 of the header are ignored.
+Implementations SHOULD set these to 0x00.
+The extended header is ignored.
+Implementations SHOULD therefore set DOFF to 0x02.
+<IGNORED>*2 .
+| (DOFF * 4 - 8) bytes 4*DOFF | | | .
+Sasl Mechanisms / Sasl Init .
+Sasl Challenge / Sasl Response .
+Sasl Outcome .
+There is no mechanism within the SASL negotiation to negotiate a different size.
+The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides=“sasl-frame” .
+Receipt of an empty frame is an irrecoverable error.
+5.3.2 SASL Negotiation The peer acting as the SASL server MUST announce supported authentication mechanisms using the sasl-mechanisms frame.
+The partner MUST then choose one of the supported mechanisms and initiate a sasl exchange.
+5.3.3 Security Frame Bodies 5.3.3.1 SASL Mechanisms Advertise available sasl mechanisms.
+Field Details sasl-server-mechanisms supported sasl mechanisms A list of the sasl security mechanisms supported by the sending peer.
+It is invalid for this list to be null or empty.
+If the sending peer does not require its partner to authenticate with it, then it SHOULD send a list of one element with its value as the SASL mechanism ANONYMOUS.
+The server mechanisms are ordered in decreasing level of preference.
+5.3.3.2 SASL Init Initiate sasl exchange.
+Field Details mechanism selected security mechanism The name of the SASL mechanism used for the SASL exchange.
+If the selected mechanism is not supported by the receiving peer, it MUST close the connection with the authentication-failure close-code.
+Each peer MUST authenticate using the highest-level security proﬁle it can handle from the list provided by the partner.
+initial-response security response data A block of opaque data passed to the security mechanism.
+The contents of this data are deﬁned by the SASL security mechanism.
+hostname the name of the target host The DNS name of the host (either fully qualiﬁed or relative) to which the sending peer is connect- ing.
+It is not mandatory to provide the hostname.
+If no hostname is provided the receiving peer SHOULD select a default based on its own conﬁguration.
+This ﬁeld can be used by AMQP proxies to determine the correct back-end service to connect the client to, and to determine the domain to validate the client’s credentials against.
+This ﬁeld might already have been speciﬁed by the server name indication extension as described in RFC-4366 [RFC4366], if a TLS layer is used, in which case this ﬁeld SHOULD either be null or contain the same value.
+It is undeﬁned what a different value to those already speciﬁed means.
+5.3.3.3 SASL Challenge Security mechanism challenge.
+Field Details challenge security challenge data Challenge information, a block of opaque binary data passed to the security mechanism.
+5.3.3.4 SASL Response Security mechanism response.
+Field Details response security response data A block of opaque data passed to the security mechanism.
+The contents of this data are deﬁned by the SASL security mechanism.
+5.3.3.5 SASL Outcome Indicates the outcome of the sasl dialog.
+Upon successful completion of the SASL dialog the security layer has been established, and the peers MUST exchange protocol headers to either start a nested security layer, or to establish the AMQP connection.
+Field Details code indicates the outcome of the sasl dialog A reply-code indicating the outcome of the SASL dialog.
+additional-data additional data as speciﬁed in RFC-4422 The additional-data ﬁeld carries additional data on successful authentication outcome as speciﬁed by the SASL speciﬁcation [RFC4422].
+If the authentication is unsuccessful, this ﬁeld is not set.
+5.3.3.6 SASL Code Codes to indicate the outcome of the sasl dialog.
+<choice name="ok" value="0"/> <choice name="auth" value="1"/> <choice name="sys" value="2"/> <choice name="sys-perm" value="3"/> <choice name="sys-temp" value="4"/> </type> Valid Values Connection authentication succeeded.
+Connection authentication failed due to an unspeciﬁed problem with the supplied credentials.
+Connection authentication failed due to a system error.
+Connection authentication failed due to a system error that is unlikely to be cor- rected without intervention.
+Connection authentication failed due to a transient system error.
+5.3.4 Constant Deﬁnitions SASL-MAJOR 1 major protocol version.
+SASL-MINOR 0 minor protocol version.
+SASL-REVISION 0 protocol revision.
