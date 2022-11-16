@@ -93,6 +93,7 @@ for i in range(len(mqtt_spec_sentences)):
 
 mqtt_spec_sentences = [sentence for sentence in mqtt_spec_sentences if sentence != ""]
 mqtt_spec_sentences = mqtt_spec_sentences[:46] + mqtt_spec_sentences[49:]
+
 # mqtt_spec_sentences = mqtt_spec_sentences[:50]
 mqtt_rule_sentences = []
 for sentence in mqtt_spec_sentences:
@@ -101,15 +102,18 @@ for sentence in mqtt_spec_sentences:
             mqtt_rule_sentences.append(sentence)
             break
 
-# tokenizer = BertTokenizer.from_pretrained("bert-base-cased")
-# model = torch.load("../model/entity_extractor.pt")
-#
-# inputs = tokenizer(mqtt_spec_sentences, padding="max_length", truncation=True, return_tensors="pt")
-#
-# input_ids = inputs["input_ids"]
-# sentence_tokens = []
-# for ids in input_ids:
-#     sentence_tokens.append(tokenizer.convert_ids_to_tokens(ids))
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+if device.type == "cpu":
+    device = torch.device("mps") if torch.has_mps else torch.device("cpu")
+tokenizer = BertTokenizer.from_pretrained("bert-base-cased")
+# model = torch.load("../model/entity_extractor.pt", map_location=device)
+
+inputs = tokenizer(mqtt_spec_sentences, padding="max_length", truncation=True, return_tensors="pt")
+
+input_ids = inputs["input_ids"]
+sentence_tokens = []
+for ids in input_ids:
+    sentence_tokens.append(tokenizer.convert_ids_to_tokens(ids))
 #
 # y = []
 #
@@ -167,9 +171,7 @@ for sentence in mqtt_spec_sentences:
 # labels = torch.LongTensor(y)
 # inputs["labels"] = labels
 #
-# device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-# if device.type == "cpu":
-#     device = torch.device("mps") if torch.has_mps else torch.device("cpu")
+
 # model.to(device)
 # model.eval()
 # test_loss, predictions, accuracy, labels = test(inputs, model)

@@ -176,10 +176,25 @@ y.append("Antecedent: If the value of an option is intended to be this default v
 y.append("Antecedent: If the option is not present;\nConsequent: the default value MUST be assumed;")
 y.append("Antecedent: An option that is repeatable;\nConsequent: MAY be included one or more times in a message;")
 y.append("Antecedent: An option that is not repeatable;\nConsequent: MUST NOT be included more than once in a message;")
-y.append("If a message includes an option with more occurrences than the option is defined for;\nConsequent: each supernumerary option occurrence that appears subsequently in the message MUST be treated like an unrecognized option (see Section 5.4.1);")
-y.append("If a Method or Response Code is not defined to have a payload;\nConsequent: then a sender MUST NOT include one, and a recipient MUST ignore it;")
+y.append("Antecedent: If a message includes an option with more occurrences than the option is defined for;\nConsequent: each supernumerary option occurrence that appears subsequently in the message MUST be treated like an unrecognized option (see Section 5.4.1);")
+y.append("Antecedent: If a Method or Response Code is not defined to have a payload;\nConsequent: then a sender MUST NOT include one, and a recipient MUST ignore it;")
 y.append('Antecedent: if no content type is given;\nConsequent: Payload "sniffing" SHOULD only be attempted;')
-
+y.append("Antecedent: Not applicable;\nConsequent: Not applicable;")
+y.append("Antecedent: Not applicable;\nConsequent: Not applicable;")
+y.append("Antecedent: if there is no additional information beyond the Response Code;\nConsequent: In contrast to what is usual in HTTP, the payload SHOULD be empty;")
+# 80
+y.append("Antecedent: Not applicable;\nConsequent: Not applicable;")
+y.append("Antecedent: Response Codes that indicate success and are unrecognized by an endpoint;\nConsequent: MUST NOT be cached;")
+y.append("Antecedent: Not applicable;\nConsequent: Not applicable;")
+y.append("Antecedent: If an origin server wishes to prevent caching;\nConsequent: it MUST explicitly include a Max-Age Option with a value of zero seconds;")
+y.append("Antecedent: When sending such a request;\nConsequent: the endpoint SHOULD add an ETag Option specifying the entity-tag of each stored response that is applicable;")
+y.append("Antecedent: Not applicable;\nConsequent: Not applicable;")
+y.append('Antecedent: When a client uses a proxy to make a request that will use a secure URI scheme (e.g., "coaps" or "https");\nConsequent: the request towards the proxy SHOULD be sent using DTLS except where equivalent lower-layer security is used for the leg between the client and the proxy;')
+y.append("Antecedent: If the request to the destination times out;\nConsequent: then a 5.04 (Gateway Timeout) response MUST be returned;")
+y.append("Antecedent: If the request to the destination returns a response that cannot be processed by the proxy (e.g, due to unrecognized critical options or message format errors);\nConsequent: then a 5.02 (Bad Gateway) response MUST be returned;")
+y.append("Antecedent: If a response is generated out of a cache;\nConsequent: the generated (or implied) Max-Age Option MUST NOT extend the max-age originally set by the server, considering the time the resource representation spent in the cache;")
+# 90
+y.append("Antecedent: All options present in a proxy request;\nConsequent: MUST be processed at the proxy;")
 
 print(len(y))
 data = []
@@ -236,7 +251,7 @@ for epoch in range(100):
     if average_train_loss < 0.1:
         break
 
-print(tokenizer.decode(generate(rfc7252_rule_sentences[74], model, tokenizer)[0]))
+print(tokenizer.decode(generate(rfc7252_rule_sentences[174], model, tokenizer)[0]))
 
 # for sentence in rfc7252_rule_sentences:
 #     if re.search(r"\b" + "shorter" + r"\b", sentence):
