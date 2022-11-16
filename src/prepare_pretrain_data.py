@@ -237,6 +237,15 @@ for i in range(len(amqp_spec_sentences)):
 
 amqp_spec_sentences = [sentence for sentence in amqp_spec_sentences if sentence != ""]
 
+# dss_spec = []
+# with pdfplumber.open("../data/dss_specification.pdf") as pdf:
+#     pages = pdf.pages[12:]
+#     for page in pages:
+#         text = page.extract_text(layout=False)
+#         print(text)
+#         break
+
+
 # Write these sentences to a file, with a new line character to separate different documents
 with open(r"../data/pretrain_sentences.txt", "w") as file:
     for sentence in rfc7252:

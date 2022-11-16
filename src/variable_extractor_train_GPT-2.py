@@ -93,7 +93,7 @@ y.append(
 y.append("Non-confirmable message be acknowledged = False;")
 y.append("recipient reject the message = True; recipient lacks context to process the message properly = True;")
 y.append(
-    "'Rejecting a Non-confirmable message = True; sending a matching Reset message = True; rejected message be silently ignored = True;")
+    "Rejecting a Non-confirmable message = True; sending a matching Reset message = True; rejected message be silently ignored = True;")
 y.append("sender transmit multiple copies of a Non-confirmable message within MAX_TRANSMIT_SPAN = True;")
 y.append("message ID be echoed in Acknowledgement or Reset messages = True;")
 y.append("same Message ID be reused within the EXCHANGE_LIFETIME = False;")
@@ -256,7 +256,7 @@ y.append("the hexadecimal notation for percent-encoding in CoAP URIs use upperca
 y.append("CoAP default port number 5683 be supported by a server that offers resources for resource discovery = True; CoAP default port number 5683 be supported for providing access to other resources = True;")
 y.append("default port number 5684 for DTLS-secured CoAP be supported by a server for resource discovery and for providing access to other resources = True;")
 y.append("CoAP endpoint support the CoRE Link Format of discoverable resources = True; fully manual configuration is desired = True;")
-y.append("value be in the range of 0-65535 (16-bit unsigned integer) = True;")
+y.append("value be in the range of 0-65535 = True;")
 y.append("Content-Format code include a space-separated sequence of Content-Format codes = True;")
 y.append("endpoint be prepared to receive such messages = True; endpoint ignore them = True; multicast service discovery is not desired = True;")
 y.append("multicast requests be Non-confirmable = True;")

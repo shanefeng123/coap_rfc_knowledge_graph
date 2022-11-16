@@ -3,10 +3,12 @@ import pickle
 import torch
 from transformers import BertTokenizer, AdamW, BertForSequenceClassification
 from itertools import combinations
+import re
 import json
 import random
 from tqdm import tqdm
 from collections import Counter
+from sklearn import metrics
 
 
 class MeditationDataset(torch.utils.data.Dataset):
@@ -73,19 +75,37 @@ processed_sentences = []
 for i in range(len(sentence_tokens)):
     processed_sentences.extend(add_entity_markers(sentence_tokens[i], all_entity_indexes[i]))
 
-with open(r"../data/coap_sentences_with_markers.txt", "w") as file:
-    for sentence in processed_sentences:
-        file.write("%s\n" % " ".join(sentence))
+# Remove all the special tokens but entity tags in processed sentences
+for i in range(len(processed_sentences)):
+    processed_sentences[i] = [token for token in processed_sentences[i] if
+                              token != "[PAD]" and token != "[CLS]" and token != "[SEP]"]
+    processed_sentences[i] = tokenizer.convert_tokens_to_ids(processed_sentences[i])
+    processed_sentences[i] = tokenizer.decode(processed_sentences[i])
+    processed_sentences[i] = re.sub(' +', ' ', processed_sentences[i])
+
+# processed_sentences = processed_sentences[:2594]
+# print(len(processed_sentences))
+#
+# with open(r"../data/coap_sentences_with_markers_2.txt", "w") as file:
+#     for sentence in processed_sentences:
+#         file.write(sentence)
+#         file.write("\n")
 
 y = json.load(open('../data/coap_relation_labels.json', 'r'))
-y.reverse()
+labels = [0] * len(y)
 for i in range(len(y)):
-    y[i] = RELATIONS[y[i]["sentiment"]]
+    # if "sentiment" not in y[i].keys():
+    #     print(y[i]["id"])
+    index = y[i]["id"] - 1
+    labels[index] = RELATIONS[y[i]["sentiment"]]
 
-print(f"no relation class percentage: {Counter(y)[0] / len(y)}")
+y = labels
+#
+print(len(y))
+print(f"no relation class percentage: {Counter(labels)[0] / len(labels)}")
 
 processed_sentences = processed_sentences[:len(y)]
-
+#
 no_relation_sentences = []
 X = []
 labels = []
@@ -96,23 +116,20 @@ for i in range(len(y)):
         X.append(processed_sentences[i])
         labels.append(y[i])
 
-no_relation_sampling = len(no_relation_sentences)
+no_relation_sampling = 700
 no_relation_sentences = random.choices(no_relation_sentences, k=no_relation_sampling)
 X.extend(no_relation_sentences)
 processed_sentences = X
 labels.extend([0] * no_relation_sampling)
-
-# Remove all the padding tokens in processed sentences
-for i in range(len(processed_sentences)):
-    processed_sentences[i] = [token for token in processed_sentences[i] if
-                              token != "[PAD]" and token != "[CLS]" and token != "[SEP]"]
-
+print(f"no relation class percentage: {Counter(labels)[0] / len(labels)}")
+#
+#
 for i in range(len(processed_sentences)):
     processed_sentences[i] = tokenizer.convert_tokens_to_string(processed_sentences[i])
 
 inputs = tokenizer(processed_sentences, padding="max_length", truncation=True, return_tensors="pt")
 input_ids = inputs["input_ids"]
-
+#
 sentence_tokens = []
 for ids in input_ids:
     sentence_tokens.append(tokenizer.convert_ids_to_tokens(ids))
@@ -121,6 +138,8 @@ labels = torch.LongTensor(labels)
 inputs["labels"] = labels
 
 
+#
+#
 def train(batch, model, optimizer):
     optimizer.zero_grad()
     input_ids = batch["input_ids"].to(device)
@@ -202,7 +221,8 @@ for epoch in range(100):
             epoch_test_labels = torch.cat((epoch_test_labels, test_labels), dim=0)
 
     average_train_loss = overall_train_loss / num_of_train_batches
-    epoch_train_accuracy = torch.sum(torch.eq(epoch_train_predictions, epoch_train_labels)) / epoch_train_labels.shape[0]
+    epoch_train_accuracy = torch.sum(torch.eq(epoch_train_predictions, epoch_train_labels)) / epoch_train_labels.shape[
+        0]
 
     average_test_loss = overall_test_loss / num_of_test_batches
     epoch_test_accuracy = torch.sum(torch.eq(epoch_test_predictions, epoch_test_labels)) / epoch_test_labels.shape[0]
@@ -212,6 +232,10 @@ for epoch in range(100):
 
     print(f"average test loss: {average_test_loss}")
     print(f"epoch test accuracy: {epoch_test_accuracy.item()}")
+    print("Training report")
+    print(metrics.classification_report(epoch_train_labels.tolist(), epoch_train_predictions.tolist(), zero_division=0))
+    print("Testing report")
+    print(metrics.classification_report(epoch_test_labels.tolist(), epoch_test_predictions.tolist(), zero_division=0))
 
     with open(r"../results/relation_extractor_results.txt", "a") as file:
         file.write(
@@ -221,7 +245,7 @@ for epoch in range(100):
             f"Epoch {epoch} average_test_loss: {average_test_loss} test_accuracy: {epoch_test_accuracy.item()}")
         file.write("\n")
 
-    if epoch_test_accuracy.item() > 0.8:
+    if epoch_train_accuracy.item() > 0.9 and epoch_test_accuracy.item() > 0.85:
         break
 
 torch.save(model, r"../model/relation_extractor.pt")
