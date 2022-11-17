@@ -23,12 +23,9 @@ labels = []
 for i in range(data_size - 1):
     sentences_a.append(data[i])
     if random.random() > 0.5:
-        if not data[i + 1].startswith("Introduction"):
-            sentences_b.append(data[i + 1])
-            labels.append(1)
-        else:
-            sentences_b.append(data[random.randint(0, data_size - 1)])
-            labels.append(0)
+        sentences_b.append(data[i + 1])
+        labels.append(1)
+
     else:
         sentences_b.append(data[random.randint(0, data_size - 1)])
         labels.append(0)

@@ -86,10 +86,10 @@ for i in range(len(processed_sentences)):
 # processed_sentences = processed_sentences[:2594]
 # print(len(processed_sentences))
 #
-# with open(r"../data/coap_sentences_with_markers_2.txt", "w") as file:
-#     for sentence in processed_sentences:
-#         file.write(sentence)
-#         file.write("\n")
+with open(r"../data/coap_sentences_with_markers_2.txt", "w") as file:
+    for sentence in processed_sentences:
+        file.write(sentence)
+        file.write("\n")
 
 y = json.load(open('../data/coap_relation_labels.json', 'r'))
 labels = [0] * len(y)
