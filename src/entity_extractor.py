@@ -3,6 +3,10 @@ import pickle
 from tqdm import tqdm
 import torch
 from prepare_pretrain_data import prepare_pretrain_data
+import random
+from sklearn import metrics
+
+random.seed(4)
 
 
 class MeditationDataset(torch.utils.data.Dataset):
@@ -1408,7 +1412,8 @@ y.append(annotate_entity(sentence_tokens[1233], []))
 y.append(annotate_entity(sentence_tokens[1234], [(1, 3)]))
 y.append(annotate_entity(sentence_tokens[1235], []))
 y.append(annotate_entity(sentence_tokens[1236], [(1, 3)]))
-y.append(annotate_entity(sentence_tokens[1237], [(3, 5), (7, 9), (15, 15), (22, 26), (28, 29), (32, 37), (39, 41), (44, 45)]))
+y.append(annotate_entity(sentence_tokens[1237],
+                         [(3, 5), (7, 9), (15, 15), (22, 26), (28, 29), (32, 37), (39, 41), (44, 45)]))
 y.append(annotate_entity(sentence_tokens[1238], [(2, 2), (11, 13), (19, 21), (24, 24)]))
 y.append(annotate_entity(sentence_tokens[1239], [(2, 2), (10, 10), (12, 14)]))
 y.append(annotate_entity(sentence_tokens[1240], []))
@@ -1555,18 +1560,38 @@ for epoch in range(20):
     epoch_test_accuracy = torch.sum(torch.eq(epoch_test_predictions, epoch_test_labels)) / (
             epoch_test_labels.shape[0] * epoch_test_labels.shape[1])
 
-    print(f"average train loss: {average_train_loss}")
-    print(f"epoch train accuracy: {epoch_train_accuracy.item()}")
+    average_train_precision = metrics.precision_score(torch.flatten(epoch_train_labels).tolist(),
+                                                      torch.flatten(epoch_train_predictions).tolist(), average="macro")
+    average_train_recall = metrics.recall_score(torch.flatten(epoch_train_labels).tolist(),
+                                                torch.flatten(epoch_train_predictions).tolist(), average="macro")
+    average_train_f1 = metrics.f1_score(torch.flatten(epoch_train_labels).tolist(),
+                                        torch.flatten(epoch_train_predictions).tolist(), average="macro")
 
-    print(f"average test loss: {average_test_loss}")
-    print(f"epoch test accuracy: {epoch_test_accuracy.item()}")
+    average_test_precision = metrics.precision_score(torch.flatten(epoch_test_labels).tolist(),
+                                                     torch.flatten(epoch_test_predictions).tolist(), average="macro")
+
+    average_test_recall = metrics.recall_score(torch.flatten(epoch_test_labels).tolist(),
+                                               torch.flatten(epoch_test_predictions).tolist(), average="macro")
+
+    average_test_f1 = metrics.f1_score(torch.flatten(epoch_test_labels).tolist(),
+                                       torch.flatten(epoch_test_predictions).tolist(), average="macro")
+
+    print(
+        f"Epoch {epoch} train loss: {average_train_loss} accuracy: {epoch_train_accuracy} precision: {average_train_precision} recall: {average_train_recall} f1: {average_train_f1}")
+    print(
+        f"Epoch {epoch} test loss: {average_test_loss} accuracy: {epoch_test_accuracy} precision: {average_test_precision} recall: {average_test_recall} f1: {average_test_f1}")
+
+    print(metrics.classification_report(torch.flatten(epoch_train_labels).tolist(),
+                                        torch.flatten(epoch_train_predictions).tolist()))
+    print(metrics.classification_report(torch.flatten(epoch_test_labels).tolist(),
+                                        torch.flatten(epoch_test_predictions).tolist()))
 
     with open(r"../results/entity_extractor_results.txt", "a") as file:
         file.write(
-            f"Epoch {epoch} average_train_loss: {average_train_loss} train_accuracy: {epoch_train_accuracy.item()}")
+            f"Epoch {epoch} average_train_loss: {average_train_loss} train_accuracy: {epoch_train_accuracy.item()} average_train_precision: {average_train_precision} average_train_recall: {average_train_recall} average_train_f1: {average_train_f1}")
         file.write("\n")
         file.write(
-            f"Epoch {epoch} average_test_loss: {average_test_loss} test_accuracy: {epoch_test_accuracy.item()}")
+            f"Epoch {epoch} average_test_loss: {average_test_loss} test_accuracy: {epoch_test_accuracy.item()} average_test_precision: {average_test_precision} average_test_recall: {average_test_recall} average_test_f1: {average_test_f1}")
         file.write("\n")
 
     if epoch_train_accuracy.item() > 0.99 and epoch_test_accuracy.item() > 0.99:

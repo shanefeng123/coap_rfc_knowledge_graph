@@ -91,18 +91,27 @@ with open(r"../data/coap_sentences_with_markers_2.txt", "w") as file:
         file.write(sentence)
         file.write("\n")
 
+
 y = json.load(open('../data/coap_relation_labels.json', 'r'))
-labels = [0] * len(y)
+processed_sentences = []
+labels = []
 for i in range(len(y)):
     # if "sentiment" not in y[i].keys():
     #     print(y[i]["id"])
-    index = y[i]["id"] - 1
-    labels[index] = RELATIONS[y[i]["sentiment"]]
+    processed_sentences.append(y[i]["text"])
+    labels.append(RELATIONS[y[i]["sentiment"]])
 
 y = labels
 #
 print(len(y))
 print(f"no relation class percentage: {Counter(labels)[0] / len(labels)}")
+
+for i in range(len(processed_sentences)):
+    processed_sentences[i] = processed_sentences[i].replace("[CLS]", "")
+    processed_sentences[i] = processed_sentences[i].replace("[SEP]", "")
+    processed_sentences[i] = processed_sentences[i].replace("[PAD]", "")
+    processed_sentences[i] = re.sub(' +', ' ', processed_sentences[i])
+    processed_sentences[i] = processed_sentences[i].strip()
 
 processed_sentences = processed_sentences[:len(y)]
 #
@@ -122,8 +131,8 @@ X.extend(no_relation_sentences)
 processed_sentences = X
 labels.extend([0] * no_relation_sampling)
 print(f"no relation class percentage: {Counter(labels)[0] / len(labels)}")
-#
-#
+
+
 for i in range(len(processed_sentences)):
     processed_sentences[i] = tokenizer.convert_tokens_to_string(processed_sentences[i])
 
@@ -138,8 +147,8 @@ labels = torch.LongTensor(labels)
 inputs["labels"] = labels
 
 
-#
-#
+
+
 def train(batch, model, optimizer):
     optimizer.zero_grad()
     input_ids = batch["input_ids"].to(device)
@@ -171,11 +180,11 @@ def test(batch, model):
 
 dataset = MeditationDataset(inputs)
 dataset_length = len(dataset)
-train_length = int(dataset_length * 0.8)
+train_length = int(dataset_length * 0.9)
 test_length = dataset_length - train_length
 train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_length, test_length])
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=16, shuffle=True)
-test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=16, shuffle=True)
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=True)
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=32, shuffle=True)
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 model.to(device)
@@ -245,7 +254,7 @@ for epoch in range(100):
             f"Epoch {epoch} average_test_loss: {average_test_loss} test_accuracy: {epoch_test_accuracy.item()}")
         file.write("\n")
 
-    if epoch_train_accuracy.item() > 0.9 and epoch_test_accuracy.item() > 0.85:
-        break
+    # if epoch_train_accuracy.item() > 0.9 and epoch_test_accuracy.item() > 0.8:
+    #     break
 
 torch.save(model, r"../model/relation_extractor.pt")

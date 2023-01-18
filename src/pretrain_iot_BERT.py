@@ -7,7 +7,7 @@ import torch
 This is following the method described in the video.
 https://www.youtube.com/watch?v=IC9FaVPKlYc&t=1079s
 """
-
+random.seed(4)
 tokenizer = BertTokenizer.from_pretrained("bert-base-cased")
 model = BertForPreTraining.from_pretrained("bert-base-cased")
 

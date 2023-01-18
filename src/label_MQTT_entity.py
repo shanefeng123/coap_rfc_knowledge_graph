@@ -5,6 +5,7 @@ import re
 import torch
 from transformers import BertTokenizer
 import pickle
+from sklearn import metrics
 
 MODAL_KEYWORDS = ["MUST", "REQUIRED", "SHALL", "SHOULD", "RECOMMENDED", "MAY", "OPTIONAL"]
 STRONG_MODAL_KEYWORDS = ["MUST", "REQUIRED", "SHALL"]
@@ -186,8 +187,6 @@ y.append(annotate_entity(sentence_tokens[60], [(3, 8), (20, 24), (31, 32)]))
 y.append(annotate_entity(sentence_tokens[61], [(2, 7), (20, 24), (14, 14), (23, 24), (27, 28)]))
 y.append(annotate_entity(sentence_tokens[62], [(2, 3), (14, 14), (17, 17), (28, 28), (34, 34), (37, 38), (41, 43)]))
 
-tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
-
 input_ids = inputs["input_ids"]
 
 input_ids_list = input_ids.tolist()
@@ -197,17 +196,47 @@ with open("../data/mqtt_sentence_input_ids_list", "wb") as file:
 
 with open("../data/mqtt_sentence_entity_indexes", "wb") as file:
     pickle.dump(all_entity_indexes, file)
-
-
-# device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-# if device.type == "cpu":
-#     device = torch.device("mps") if torch.has_mps else torch.device("cpu")
-# model = torch.load("../model/entity_extractor.pt", map_location=device)
 #
-# labels = torch.LongTensor(y)
-# inputs["labels"] = labels
+# #
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+model = torch.load("../model/entity_extractor.pt", map_location=device)
 #
-# model.to(device)
-# model.eval()
-# test_loss, predictions, accuracy, labels = test(inputs, model)
-# print(accuracy.item())
+labels = torch.LongTensor(y)
+inputs["labels"] = labels
+#
+model.to(device)
+model.eval()
+test_loss, predictions, accuracy, labels = test(inputs, model)
+
+test_precision = metrics.precision_score(torch.flatten(labels).tolist(),
+                                         torch.flatten(predictions).tolist(), average="macro")
+
+test_recall = metrics.recall_score(torch.flatten(labels).tolist(),
+                                   torch.flatten(predictions).tolist(), average="macro")
+
+test_f1 = metrics.f1_score(torch.flatten(labels).tolist(),
+                           torch.flatten(predictions).tolist(), average="macro")
+
+print(
+    f"Test loss: {test_loss}, Test accuracy: {accuracy}, Test precision: {test_precision}, Test recall: {test_recall}, Test f1: {test_f1}")
+
+print(
+    metrics.classification_report(torch.flatten(labels).tolist(), torch.flatten(predictions).tolist(), zero_division=0))
+
+with open(r"../results/MQTT_entity_benchmark.txt", "a") as file:
+    file.write(
+        f"Test loss: {test_loss}, Test accuracy: {accuracy}, Test precision: {test_precision}, Test recall: {test_recall}, Test f1: {test_f1}")
+    file.write("\n")
+
+# test_sentence = "Both Block1 and Block2 Options can be present in both the request and response messages."
+# test_inputs = tokenizer(test_sentence, return_tensors="pt")
+# test_input_ids = test_inputs["input_ids"].to(device)
+# test_token_type_ids = test_inputs["token_type_ids"].to(device)
+# test_attention_mask = test_inputs["attention_mask"].to(device)
+# test_outputs = model(input_ids=test_input_ids, token_type_ids=test_token_type_ids, attention_mask=test_attention_mask)
+# test_predictions = torch.argmax(test_outputs.logits, dim=-1)
+# test_sentence_tokens = []
+# for ids in test_input_ids:
+#     test_sentence_tokens.append(tokenizer.convert_ids_to_tokens(ids))
+# print(test_sentence_tokens)
+# print(test_predictions)
